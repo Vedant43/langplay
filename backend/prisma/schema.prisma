@@ -1,0 +1,148 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             Int      @id @default(autoincrement())
+  username       String   @unique
+  channelName    String   @unique
+  email          String   @unique
+  password       String
+  profilePicture String?
+  coverPicture   String?
+  description    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  videos             Video[] 
+  videoEngagement    VideoEngagement[]
+  playList           Playlist[]
+  community          Community[] 
+  comments           Comment[]
+  commentEngagements CommentEngagement[]
+  communityLikes     CommunityLikes[] 
+
+  subscribers  ChannelEngagement[] @relation("channel")
+  subscribedTo ChannelEngagement[] @relation("subscriber")
+}
+
+model Video {
+  id           Int      @id @default(autoincrement())
+  title        String   @unique
+  description  String?
+  videoUrl     String
+  thumbnailUrl String
+  views        Int      @default(0)
+  isPublished  Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  comments        Comment[]
+  videoEngagement VideoEngagement[]
+  playlists       Playlist_videos[]
+}
+
+model VideoEngagement {
+  videoId        Int
+  userId         Int
+  video          Video      @relation(fields: [videoId], references: [id])
+  user           User       @relation(fields: [userId], references: [id])
+  engagementType Engagement
+
+  @@unique([videoId, userId]) // Confused if engageType will be in unique or not
+}
+
+model Playlist {
+  id        Int               @id @default(autoincrement())
+  name      String
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  userId    Int
+  user      User              @relation(fields: [userId], references: [id])
+  videos    Playlist_videos[]
+}
+
+model Playlist_videos {
+  playListId Int
+  videosId   Int
+  playlist   Playlist @relation(fields: [playListId], references: [id])
+  video      Video    @relation(fields: [videosId], references: [id])
+
+  @@unique([playListId, videosId])
+}
+
+model Community {
+  id             Int              @id @default(autoincrement())
+  userId         Int
+  title          String
+  content        String
+  image          String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  user           User             @relation(fields: [userId], references: [id])
+  communityLikes CommunityLikes[]
+}
+
+model CommunityLikes {
+  communityId Int
+  userId      Int
+
+  community Community @relation(fields: [communityId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@unique([communityId, userId])
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+  videoId   Int
+  userId    Int
+
+  video Video @relation(fields: [videoId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+
+  engagement CommentEngagement[]
+}
+
+model CommentEngagement {
+  commentId Int
+  userId    Int
+  comment   Comment @relation(fields: [commentId], references: [id])
+  user      User    @relation(fields: [userId], references: [id])
+
+  @@unique([commentId, userId])
+}
+
+model ChannelEngagement {
+  channelId    Int
+  subscriberId Int
+
+  channel    User     @relation("channel", fields: [channelId], references: [id])
+  subscriber User     @relation("subscriber", fields: [subscriberId], references: [id])
+  createdAt  DateTime @default(now())
+  // Figure out how to make behave one user can subscribe only once if press again then unsubscribe
+
+  @@unique([channelId, subscriberId])
+}
+
+enum Engagement {
+  LIKE
+  DISLIKE
+}
+
+// Run prisma format to format your schema.
+// prisma db pull to sync your Prisma schema with the current state of the database
+// Run prisma migrate dev to apply the schema to your database.
