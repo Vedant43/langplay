@@ -6,7 +6,6 @@ import { z } from "zod";
 
 export const signUpSchema = z.object({
   username: z.string().min(5, "Username must be at least 5 characters long").max(30, "Username cannot exceed 30 characters"),
-  channelName: z.string().min(3, "Channel name must be at least 3 characters long").max(50, "Channel name cannot exceed 50 characters"),
   email: z.string().email("Invalid email format"),
   password: z.string().min(6, "Password must be at least 6 characters long").max(100, "Password cannot exceed 100 characters"),
   profilePicture: z.instanceof(File).optional(),

@@ -19,10 +19,5 @@ const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
 
 export default errorHandler;
 
-// else if (err instanceof SomeOtherLibraryError) {
-//   console.log("SomeOtherLibrary Error:", err);
-//   err = new ApiError(400, "A specific error occurred from SomeOtherLibrary", err.message);
-// }
-
 // import { Request, Response, NextFunction } from "express"; does not work
 // Explicitly type the error handler as ErrorRequestHandler

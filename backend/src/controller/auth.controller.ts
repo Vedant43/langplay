@@ -9,26 +9,23 @@ import { uploadOnCloudinary } from "../utils/cloudinary";
 const prisma = new PrismaClient();
 
 export const signUp = async (req: Request, res: Response) => {
-    const { username, channelName, email, password, description } = req.body;
-    // const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
-    // const profilePicture = req.files?.profilePicture?.[0]?.path || null;
-    // const coverPicture = req.files?.coverPicture?.[0]?.path || null;
+    const { username, email, password, description } = req.body;
 
     const files = req.files as { [fieldname: string]: Express.Multer.File[] };
     const profilePicture = files?.profilePicture?.[0]?.path || null;
     const coverPicture = files?.coverPicture?.[0]?.path || null;
+    
     const existingUser = await prisma.user.findFirst({
       where: {
         OR: [
           { email },
           { username },
-          { channelName },
         ],
       },
     });
 
     if (existingUser) {
-      throw new ApiError(400, "Email, username, or channel name already exists.");
+      throw new ApiError(400, "Email or username already exists.");
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -37,14 +34,10 @@ export const signUp = async (req: Request, res: Response) => {
     let coverPictureUrl: string | null=null
 
     if (profilePicture) {
-      try {
           const uploadedProfile = await uploadOnCloudinary(profilePicture);
           profilePictureUrl = uploadedProfile.secure_url;
           console.log(profilePictureUrl)
-      } catch (error) {
-          throw new ApiError(500, "Profile picture upload failed");
-      }
-  }
+    }
   
     if (coverPicture) {
       try {
@@ -58,7 +51,6 @@ export const signUp = async (req: Request, res: Response) => {
     const newUser = await prisma.user.create({
       data: {
         username,
-        channelName,
         email,
         password: hashedPassword,
         profilePicture: profilePictureUrl,

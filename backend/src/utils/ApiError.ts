@@ -11,7 +11,6 @@ class ApiError extends Error {
     this.statusCode = statusCode;
     this.details = details;
 
-    // Ensure the error name matches the class name for better debugging
     Object.setPrototypeOf(this, ApiError.prototype);
   }
 
@@ -26,3 +25,8 @@ class ApiError extends Error {
 }
 
 export default ApiError;
+
+// const error = new ApiError(400, "Invalid request");
+// console.log(error instanceof ApiError); // ❌ Might return false wo setPrototypeOf
+// console.log(error instanceof Error); // ✅ Returns true
+// reserves the behavior of Error

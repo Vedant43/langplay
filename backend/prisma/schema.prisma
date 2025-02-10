@@ -13,7 +13,6 @@ datasource db {
 model User {
   id             Int      @id @default(autoincrement())
   username       String   @unique
-  channelName    String   @unique
   email          String   @unique
   password       String
   profilePicture String?
@@ -145,4 +144,4 @@ enum Engagement {
 
 // Run prisma format to format your schema.
 // prisma db pull to sync your Prisma schema with the current state of the database
-// Run prisma migrate dev to apply the schema to your database.
+// Run npx prisma generate and npx prisma migrate dev to apply the schema to your database.
