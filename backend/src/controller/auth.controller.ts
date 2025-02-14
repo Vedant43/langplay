@@ -4,16 +4,16 @@ import ApiResponse from "../utils/ApiResponse";
 import ApiError from "../utils/ApiError";
 import bcrypt from "bcryptjs"; 
 import { generateAccessToken, generateRefreshToken, verifyToken } from "../utils/tokenService";
-import { uploadOnCloudinary } from "../utils/cloudinary";
+import { uploadImageOnCloudinary } from "../utils/cloudinary";
 
 const prisma = new PrismaClient();
 
 export const signUp = async (req: Request, res: Response) => {
-    const { username, email, password, description } = req.body;
+    const { username, email, password, description } = req.body
 
-    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-    const profilePicture = files?.profilePicture?.[0]?.path || null;
-    const coverPicture = files?.coverPicture?.[0]?.path || null;
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] }
+    const profilePicture = files?.profilePicture?.[0]?.path || null
+    const coverPicture = files?.coverPicture?.[0]?.path || null
     
     const existingUser = await prisma.user.findFirst({
       where: {
@@ -34,14 +34,14 @@ export const signUp = async (req: Request, res: Response) => {
     let coverPictureUrl: string | null=null
 
     if (profilePicture) {
-          const uploadedProfile = await uploadOnCloudinary(profilePicture);
+          const uploadedProfile = await uploadImageOnCloudinary(profilePicture, username);
           profilePictureUrl = uploadedProfile.secure_url;
           console.log(profilePictureUrl)
     }
   
     if (coverPicture) {
       try {
-          const uploadedCover = await uploadOnCloudinary(coverPicture);
+          const uploadedCover = await uploadImageOnCloudinary(coverPicture, username);
           coverPictureUrl = uploadedCover.secure_url;
       } catch (error) {
           throw new ApiError(500, "Cover picture upload failed");
@@ -117,6 +117,6 @@ export const refresh = (req: Request, res: Response) => {
     throw new ApiError(401, "Invalid Refresh token!")
   }
 
-  const newAccessToken = generateAccessToken({ userId: (decoded as any).userId });
+  const newAccessToken = generateAccessToken({ userId: (decoded as any).userId, username: decoded.username });
   res.json({ accessToken: newAccessToken });
 };

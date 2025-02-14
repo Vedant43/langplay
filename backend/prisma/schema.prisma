@@ -21,28 +21,29 @@ model User {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  videos             Video[] 
+  videos             Video[]
   videoEngagement    VideoEngagement[]
   playList           Playlist[]
-  community          Community[] 
+  community          Community[]
   comments           Comment[]
   commentEngagements CommentEngagement[]
-  communityLikes     CommunityLikes[] 
+  communityLikes     CommunityLikes[]
 
   subscribers  ChannelEngagement[] @relation("channel")
   subscribedTo ChannelEngagement[] @relation("subscriber")
 }
 
 model Video {
-  id           Int      @id @default(autoincrement())
-  title        String   @unique
-  description  String?
-  videoUrl     String
-  thumbnailUrl String
-  views        Int      @default(0)
-  isPublished  Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id            Int      @id @default(autoincrement())
+  title         String   @unique
+  description   String?
+  videoUrl      String
+  videoPublicId String
+  thumbnailUrl  String
+  views         Int      @default(0)
+  isPublished   Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   userId Int
   user   User @relation(fields: [userId], references: [id])
@@ -55,11 +56,12 @@ model Video {
 model VideoEngagement {
   videoId        Int
   userId         Int
-  video          Video      @relation(fields: [videoId], references: [id])
-  user           User       @relation(fields: [userId], references: [id])
   engagementType Engagement
 
-  @@unique([videoId, userId]) // Confused if engageType will be in unique or not
+  video          Video      @relation(fields: [videoId], references: [id])
+  user           User       @relation(fields: [userId], references: [id])
+
+  @@unique([videoId, userId]) // If we do not use this then user can do both, like and dislike
 }
 
 model Playlist {
@@ -144,4 +146,4 @@ enum Engagement {
 
 // Run prisma format to format your schema.
 // prisma db pull to sync your Prisma schema with the current state of the database
-// Run npx prisma generate and npx prisma migrate dev to apply the schema to your database.
+// Run npx prisma generate and npx prisma migrate dev to apply the schema to database.

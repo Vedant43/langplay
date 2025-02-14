@@ -13,7 +13,7 @@ const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
     console.log("Unknown Error:", err)
     err = new ApiError(500, "Internal Server Error", err.message)
   }
-
+  
   return err.handle(res)
 }
 

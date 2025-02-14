@@ -17,3 +17,16 @@ export const signInSchema = z.object({
   usernameOrEmail: z.string().min(5, "Username must be at least 5 characters long").max(30, "Username cannot exceed 30 characters"),
   password: z.string().min(6, "Password must be at least 6 characters long").max(100, "Password cannot exceed 100 characters"),
 })
+
+export const videoUploadSchema = z.object({
+  title: z.string().min(5, "Title must be at least 5 characters long"),
+  description: z.string(),
+  // video: z.instanceof(File),
+  // category: z.string(),
+  // thumbnail: z.instanceof(File)
+})
+
+
+export const commentSchema = z.object({
+  content: z.string(),
+})

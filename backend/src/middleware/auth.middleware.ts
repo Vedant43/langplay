@@ -1,10 +1,11 @@
-import { NextFunction } from "express";
+import { NextFunction, RequestHandler, Request, Response } from "express";
 import ApiError from "../utils/ApiError";
 import { verifyToken } from "../utils/tokenService";
+import { AuthRequest } from "../utils/types";
 
-export const aunthicate = (req: Request, res: Response, next: NextFunction) => {
+export const authenticate : RequestHandler = (req: Request, res: Response, next: NextFunction) => {
 
-    const authHeader = (req.headers as { authorization?: string }).authorization;
+    const authHeader = (req.headers as { authorization?: string }).authorization
 
     if(!authHeader || !authHeader.startsWith('Bearer')){
         throw new ApiError(401, "Unauthorized")
@@ -12,9 +13,13 @@ export const aunthicate = (req: Request, res: Response, next: NextFunction) => {
 
     const token = authHeader.split(" ")[1]
     const decoded = verifyToken(token)
-    //check what is returned by verifytoken if failed
+
     if(!decoded){
         throw new ApiError(403, "Invalid or expired token")
     }
+    //check what is returned by verifytoken if failed
+    (req as unknown as AuthRequest).userId = decoded.userId as number
+    (req as unknown as AuthRequest).username = decoded.username
 
+    next()
 }

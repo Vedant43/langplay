@@ -5,10 +5,11 @@ import ApiError from "../utils/ApiError";
 export const validate = (schema: AnyZodObject) =>                                  
   (req: Request, res: Response, next: NextFunction) => {
     try {
-      console.log(req.body)
+      // console.log("Req.body ")
+      // console.log(req.body)
       schema.parse(
         req.body, // We can use schema.parse({body:req.body, params:,query:}) but we have not defined params in schema
-      );
+      )
       next(); 
     } catch (error) {
       if (error instanceof ZodError) {
