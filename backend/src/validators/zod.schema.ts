@@ -8,10 +8,16 @@ export const signUpSchema = z.object({
   username: z.string().min(5, "Username must be at least 5 characters long").max(30, "Username cannot exceed 30 characters"),
   email: z.string().email("Invalid email format"),
   password: z.string().min(6, "Password must be at least 6 characters long").max(100, "Password cannot exceed 100 characters"),
+  // profilePicture: z.instanceof(File).optional(),
+  // coverPicture: z.instanceof(File).optional(),
+  // description: z.string().max(500, "Description cannot exceed 500 characters").optional(),
+});
+
+export const setupProfileSchema = z.object({
   profilePicture: z.instanceof(File).optional(),
   coverPicture: z.instanceof(File).optional(),
   description: z.string().max(500, "Description cannot exceed 500 characters").optional(),
-});
+})
 
 export const signInSchema = z.object({
   usernameOrEmail: z.string().min(5, "Username must be at least 5 characters long").max(30, "Username cannot exceed 30 characters"),

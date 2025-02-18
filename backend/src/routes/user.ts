@@ -1,13 +1,17 @@
 import express from "express";
-import { signUp, signIn } from "../controller/auth.controller";
+import { signUp, signIn, setupProfile } from "../controller/auth.controller";
 import asyncHandler from "../utils/asyncHandler";
 import { validate } from "../middleware/validator.middleware";
-import { signInSchema, signUpSchema } from "../validators/zod.schema";
+import { setupProfileSchema, signInSchema, signUpSchema } from "../validators/zod.schema";
 import { uploadProfileCover } from "../middleware/multer.middleware";
+import { authenticate } from "../middleware/auth.middleware";
 
 const router = express.Router();
 
 router.post("/signup", uploadProfileCover, validate(signUpSchema),  asyncHandler(signUp))
+
+router.post("/setup-profile", authenticate, uploadProfileCover, validate(setupProfileSchema), asyncHandler(setupProfile))
+
 router.post("/signin", validate(signInSchema), asyncHandler(signIn))
 
 // we can create a video tag by cloudinary.video("public_id")

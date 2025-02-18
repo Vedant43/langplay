@@ -27,6 +27,9 @@ export const uploadVideo = async (req: Request, res: Response) => {
     if(videoFilePath){
         const response = await uploadVideoOnCloudinary(videoFilePath, userId)
         videoResponse = response
+    } 
+    else{
+        throw new ApiError(400,'Video file is required')
     }
 
     let thumbnailUrl
@@ -44,8 +47,8 @@ export const uploadVideo = async (req: Request, res: Response) => {
         data: {
             title,
             description,
-            videoUrl: videoResponse?.secure_url || '',
-            videoPublicId: videoResponse?.public_id || '',
+            videoUrl: videoResponse?.secure_url,
+            videoPublicId: videoResponse?.public_id,
             thumbnailUrl: thumbnailUrl || '',
             userId
         }

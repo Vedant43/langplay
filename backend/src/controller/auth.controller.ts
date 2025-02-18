@@ -5,15 +5,21 @@ import ApiError from "../utils/ApiError";
 import bcrypt from "bcryptjs"; 
 import { generateAccessToken, generateRefreshToken, verifyToken } from "../utils/tokenService";
 import { uploadImageOnCloudinary } from "../utils/cloudinary";
+import { AuthRequest } from "../utils/types";
 
 const prisma = new PrismaClient();
 
-export const signUp = async (req: Request, res: Response) => {
-    const { username, email, password, description } = req.body
+interface MulterFileFields {
+  profilePicture: Express.Multer.File[],
+  coverPicture: Express.Multer.File[],
+}
 
-    const files = req.files as { [fieldname: string]: Express.Multer.File[] }
-    const profilePicture = files?.profilePicture?.[0]?.path || null
-    const coverPicture = files?.coverPicture?.[0]?.path || null
+export const signUp = async (req: Request, res: Response) => {
+    const { username, email, password } = req.body
+
+    // const files = req.files as { [fieldname: string]: Express.Multer.File[] }
+    // const profilePicture = files?.profilePicture?.[0]?.path || null
+    // const coverPicture = files?.coverPicture?.[0]?.path || null
     
     const existingUser = await prisma.user.findFirst({
       where: {
@@ -22,7 +28,7 @@ export const signUp = async (req: Request, res: Response) => {
           { username },
         ],
       },
-    });
+    })
 
     if (existingUser) {
       throw new ApiError(400, "Email or username already exists.");
@@ -30,32 +36,32 @@ export const signUp = async (req: Request, res: Response) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    let profilePictureUrl: string | null=null
-    let coverPictureUrl: string | null=null
+    // let profilePictureUrl: string | null=null
+    // let coverPictureUrl: string | null=null
 
-    if (profilePicture) {
-          const uploadedProfile = await uploadImageOnCloudinary(profilePicture, username);
-          profilePictureUrl = uploadedProfile.secure_url;
-          console.log(profilePictureUrl)
-    }
+    // if (profilePicture) {
+    //       const uploadedProfile = await uploadImageOnCloudinary(profilePicture, username);
+    //       profilePictureUrl = uploadedProfile.secure_url;
+    //       console.log(profilePictureUrl)
+    // }
   
-    if (coverPicture) {
-      try {
-          const uploadedCover = await uploadImageOnCloudinary(coverPicture, username);
-          coverPictureUrl = uploadedCover.secure_url;
-      } catch (error) {
-          throw new ApiError(500, "Cover picture upload failed");
-      }
-    }
+    // if (coverPicture) {
+    //   try {
+    //       const uploadedCover = await uploadImageOnCloudinary(coverPicture, username);
+    //       coverPictureUrl = uploadedCover.secure_url;
+    //   } catch (error) {
+    //       throw new ApiError(500, "Cover picture upload failed");
+    //   }
+    // }
 
     const newUser = await prisma.user.create({
       data: {
         username,
         email,
         password: hashedPassword,
-        profilePicture: profilePictureUrl,
-        coverPicture: coverPictureUrl,
-        description: description ?? null,
+        // profilePicture: profilePictureUrl,
+        // coverPicture: coverPictureUrl,
+        // description: description ?? null,
       },
     });
 
@@ -69,6 +75,53 @@ export const signUp = async (req: Request, res: Response) => {
     })
     
     return new ApiResponse(201, "User signed up successfully", { newUser, accessToken}).send(res); 
+}
+
+export const setupProfile = async (req: Request, res: Response) => {
+    const { description } = req.body
+    const userId = (req as AuthRequest).userId
+    // const files = req.files as { [fieldname: string]: Express.Multer.File[] }
+    const files = req.files as MulterFileFields | undefined
+
+    const profilePicturePath = files?.profilePicture?.[0].path 
+    const coverPicturePath = files?.coverPicture?.[0].path
+
+    const existingUser = await prisma.user.findUnique({
+      where:{
+        id: userId
+      }
+    })
+
+    if(!existingUser){
+      throw new ApiError(404, "User does not exist")
+    }
+
+    const updateData: Record<string, any> = {};
+
+    if (profilePicturePath) {
+      const uploadedProfile = await uploadImageOnCloudinary(profilePicturePath, userId)
+      updateData.profilePicture = uploadedProfile.secure_url
+    }
+
+    if (coverPicturePath) {
+      const uploadedCover = await uploadImageOnCloudinary(coverPicturePath, userId)
+      updateData.coverPicture = uploadedCover.secure_url
+    }
+
+    if (description) {
+      updateData.description = description
+    }
+
+    if (Object.keys(updateData).length > 0) {
+      await prisma.user.update({
+        where: { 
+          id: userId 
+        },
+        data: updateData,
+      })
+    }
+
+    return new ApiResponse(200, "Profile updated").send(res)
 }
 
 // If existingUser is found, the ApiError will be thrown => .catch(next) from asyncHandler => Global error Handler(For customised error)
