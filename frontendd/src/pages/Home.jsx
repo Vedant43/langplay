@@ -8,7 +8,7 @@ const Home = ({ sidenavbar }) => {
       <SideNavbar sidenavbar={sidenavbar} />
       <HomePage sidenavbar={sidenavbar} />
     </div>
-  );
-};
+  )
+}
 
-export default Home;
+export default Home

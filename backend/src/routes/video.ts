@@ -27,6 +27,7 @@ router.post("/:videoId/comment", authenticate, validate(commentSchema), asyncHan
 // router.get("/:videoId/comments", authenticate ,asyncHandler(getComments)) // not needed as comment will be fetched in getVideoById
 
 router.delete("/:userId/comment/:commentId", authenticate, asyncHandler(deleteCommentById))
+// need to update, should be video id and commentid
 
 export default router
 

@@ -8,18 +8,18 @@ import dotenv from 'dotenv';
 const app = express();
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cors());
+app.use(express.urlencoded({ extended: true }))
+app.use(cors())
 dotenv.config()
 
-app.use("/api/v1/user", userRouter);
+app.use("/api/v1/user", userRouter)
 app.use("/api/v1/video", videoRouter)
 
 app.use(errorHandler)
 
-app.listen(3000);
+app.listen(3000)
 
-export { app };
+export { app }
 
 // "scripts": {
 //     "start": "node dist/index.js",

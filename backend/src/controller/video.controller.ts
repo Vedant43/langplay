@@ -96,11 +96,14 @@ export const getVideoById = async (req: Request, res: Response) => {
 }
 
 export const deleteVideoById = async (req: Request, res: Response) => {
+    // need to make sure if user is owner
     const videoId = parseInt(req.params.id, 10)
+    const userId = (req as AuthRequest).userId
 
     await prisma.video.delete({
         where: {
-            id: videoId
+            id: videoId,
+            userId
         }
     })
 
@@ -154,7 +157,7 @@ export const likeVideo = async (req: Request, res: Response) => {
                     }}
             })
         
-            return new ApiResponse(200, "Removed like", { liked:false, likeCount: await getLikeCount(videoId)})
+            return new ApiResponse(200, "Removed like", { liked:false, likeCount: await getLikeCount(videoId)}).send(res)
         } 
 
         // if video is disliked
@@ -169,7 +172,7 @@ export const likeVideo = async (req: Request, res: Response) => {
             },
         })
 
-        return new ApiResponse(200, "Liked", { liked: true, likeCount: await getLikeCount(videoId)})
+        return new ApiResponse(200, "Liked", { liked: true, likeCount: await getLikeCount(videoId)}).send(res)
     }
 
     await prisma.videoEngagement.create({
@@ -180,7 +183,7 @@ export const likeVideo = async (req: Request, res: Response) => {
         }
     })
 
-    return new ApiResponse(200, "Liked", { liked: true, likeCount: await getLikeCount(videoId)})
+    return new ApiResponse(200, "Liked", { liked: true, likeCount: await getLikeCount(videoId)}).send(res)
 }
 
 export const dislikeVideo = async (req: Request, res: Response) => {
@@ -208,7 +211,7 @@ export const dislikeVideo = async (req: Request, res: Response) => {
                 }  
             })
 
-            return new ApiResponse(200, "Removed dislike", { disliked: false, dislikeCount: await getDislikeCount(videoId)})
+            return new ApiResponse(200, "Removed dislike", { disliked: false, dislikeCount: await getDislikeCount(videoId)}).send(res)
         }
 
         await prisma.videoEngagement.update({
@@ -223,7 +226,7 @@ export const dislikeVideo = async (req: Request, res: Response) => {
             }
         })
 
-        return new ApiResponse(200, "Disliked", { disliked: true, likeCount: await getDislikeCount(videoId)})
+        return new ApiResponse(200, "Disliked", { disliked: true, dislikeCount: await getDislikeCount(videoId)}).send(res)
     }
 
     await prisma.videoEngagement.create({
@@ -234,7 +237,7 @@ export const dislikeVideo = async (req: Request, res: Response) => {
         }
     })
 
-    return new ApiResponse(200, "Disliked", { disliked: true, likeCount: await getDislikeCount(videoId)})
+    return new ApiResponse(200, "Disliked", { disliked: true, dislikeCount: await getDislikeCount(videoId)}).send(res)
 }
 
 export const addComment = async (req: Request, res: Response) => {

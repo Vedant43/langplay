@@ -1,4 +1,5 @@
 import React from 'react';
+import Container from './Container';
 
 const HomePage = ({ sidenavbar }) => {
   const options = [
@@ -7,20 +8,21 @@ const HomePage = ({ sidenavbar }) => {
   ];
 
   return (
+    <Container>
     <div className={sidenavbar ? "flex flex-col overflow-x-hidden flex-1 ml-[274px] min-h-screen" : "flex flex-col overflow-x-hidden flex-1 min-h-screen"}>
       {/* Options Section */}
-      <div className="flex fixed top-[63px] z-10 w-full box-border gap-2.5 flex-shrink-0 h-auto overflow-x-scroll bg-black">
+      <div className="flex fixed top-[63px] w-full box-border gap-2.5 flex-shrink-0 h-auto overflow-x-scroll bg-white z-10">
         {options.map((item, index) => (
-          <div key={index} className="flex-none h-8 px-2.5 py-0.5 bg-[#2a2a2a] text-white font-semibold rounded-md flex justify-center items-center cursor-pointer">
+          <div key={index} className="flex-none h-8 px-2.5 py-0.5 bg-[#f2f2f2] text-slate-700 font-semibold rounded-md flex justify-center items-center cursor-pointer">
             {item}
           </div>
         ))}
       </div>
 
       {/* Main Video Section */}
-      <div className={sidenavbar ? "grid gap-2.5 grid-cols-3 p-[90px_0_20px_0] bg-black" : "grid gap-[30px] grid-cols-4 p-[90px_0_20px_10px] bg-black"}>
+      <div className={sidenavbar ? "grid gap-2.5 grid-cols-3 p-[90px_0_20px_0] bg-white" : "grid gap-[30px] grid-cols-4 p-[90px_0_20px_10px] bg-white"}>
         {[...Array(5)].map((_, index) => (
-          <div key={index} className="text-white no-underline flex box-border flex-col cursor-pointer h-[316px]">
+          <div key={index} className="text-slate-600 no-underline flex box-border flex-col cursor-pointer h-[316px]">
             {/* Thumbnail Box */}
             <div className="w-full relative box-border h-[216px]">
               <img
@@ -28,7 +30,7 @@ const HomePage = ({ sidenavbar }) => {
                 alt="thumbnail"
                 className="w-full h-full rounded-[10px]"
               />
-              <div className="absolute right-0 bottom-0 px-1 py-0.5 bg-[#2a2a2a] rounded-md">
+              <div className="absolute right-0 bottom-0 px-1 py-0.5 my-1 mx-1 text-xs text-slate-200 bg-black rounded-md">
                 20:00
               </div>
             </div>
@@ -53,7 +55,8 @@ const HomePage = ({ sidenavbar }) => {
         ))}
       </div>
     </div>
-  );
-};
+    </Container>
+  )
+}
 
-export default HomePage;
+export default HomePage
