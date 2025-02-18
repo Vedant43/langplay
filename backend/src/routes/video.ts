@@ -3,20 +3,22 @@ import { uploadVideoWithThumbnail } from "../middleware/multer.middleware"
 import { validate } from "../middleware/validator.middleware"
 import { commentSchema, videoUploadSchema } from "../validators/zod.schema"
 import asyncHandler from "../utils/asyncHandler"
-import { deleteVideoById, getAllVideos, getVideoById, getVideosByUser, uploadVideo, addComment, deleteCommentById, likeVideo, dislikeVideo } from "../controller/video.controller"
+import { deleteVideoById, getAllVideos, getVideoById, getVideosByUser, uploadVideo, addComment, deleteCommentById, likeVideo, dislikeVideo, getLikedVideos } from "../controller/video.controller"
 import { authenticate } from "../middleware/auth.middleware"
 
 const router = Router()
 
 router.post("/upload", authenticate, uploadVideoWithThumbnail, validate(videoUploadSchema), asyncHandler(uploadVideo))
 
-router.get("/:id", authenticate, asyncHandler(getVideoById))
-
 router.delete("/:id", authenticate, asyncHandler(deleteVideoById))
 
 router.get("/:userId/videos", authenticate, asyncHandler(getVideosByUser))
 
 router.get("/", authenticate, asyncHandler(getAllVideos))
+
+router.get("/liked-videos", authenticate, asyncHandler(getLikedVideos))
+
+router.get("/:id", authenticate, asyncHandler(getVideoById))
 
 router.post("/:id/like", authenticate, asyncHandler(likeVideo))
 
@@ -33,8 +35,6 @@ export default router
 
 // The as assertion forces TypeScript to accept it, while direct type annotation (:) requires TypeScript to infer the type properly.
 
-// liked videos by user
 // update video details
 // subscribe to channel
 // add notification on video upload
-// playlists

@@ -135,6 +135,40 @@ export const getVideosByUser = async (req: Request, res: Response) => {
     return new ApiResponse(200, "Videos fetched successfully", videos).send(res)
 }
 
+export const getLikedVideos = async (req: Request, res: Response) => {
+    const userId = (req as AuthRequest).userId
+    
+    const engagementById = await prisma.videoEngagement.findMany({
+        where:{
+            userId,
+            engagementType: 'LIKE'
+        },
+    })
+
+    const likedVideoIds = engagementById.map(videoEngagement => videoEngagement.videoId)
+
+    const likedVideos = await prisma.video.findMany({
+        where: {
+            id: { 
+                in: likedVideoIds
+            }
+        },
+        select: {
+            id: true,
+            title: true,
+            description: true,
+            videoUrl: true,
+            videoPublicId: true,
+            thumbnailUrl: true,
+            userId: true,
+            views: true,
+            createdAt: true,
+        } 
+    })
+
+    return new ApiResponse(200, "Fetched liked videos...", likedVideos).send(res)      
+}
+
 export const getAllVideos = async (req: Request, res: Response) => {
 
 }

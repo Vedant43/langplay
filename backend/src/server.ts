@@ -1,7 +1,8 @@
-import express from "express";
-import cors from "cors";
-import userRouter from "./routes/user";
+import express from "express"
+import cors from "cors"
+import userRouter from "./routes/user"
 import videoRouter from "./routes/video"
+import playlistRouter from "./routes/playlist"
 import errorHandler from "./utils/errorHandler";
 import dotenv from 'dotenv';
 
@@ -14,6 +15,7 @@ dotenv.config()
 
 app.use("/api/v1/user", userRouter)
 app.use("/api/v1/video", videoRouter)
+app.use("/api/v1/playlist", playlistRouter)
 
 app.use(errorHandler)
 

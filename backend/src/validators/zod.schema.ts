@@ -30,3 +30,7 @@ export const videoUploadSchema = z.object({
 export const commentSchema = z.object({
   content: z.string(),
 })
+
+export const createPlaylistSchema = z.object({
+  name: z.string().nonempty("String cannot be empty")
+})

@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,57 +8,52 @@ datasource db {
 }
 
 model User {
-  id             Int      @id @default(autoincrement())
-  username       String   @unique
-  email          String   @unique
-  password       String
-  profilePicture String?
-  coverPicture   String?
-  description    String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  videos             Video[]
-  videoEngagement    VideoEngagement[]
-  playList           Playlist[]
-  community          Community[]
+  id                 Int                 @id @default(autoincrement())
+  email              String              @unique
+  coverPicture       String?
+  createdAt          DateTime            @default(now())
+  description        String?
+  profilePicture     String?
+  updatedAt          DateTime            @updatedAt
+  username           String              @unique
+  password           String
+  subscribers        ChannelEngagement[] @relation("channel")
+  subscribedTo       ChannelEngagement[] @relation("subscriber")
   comments           Comment[]
   commentEngagements CommentEngagement[]
+  community          Community[]
   communityLikes     CommunityLikes[]
-
-  subscribers  ChannelEngagement[] @relation("channel")
-  subscribedTo ChannelEngagement[] @relation("subscriber")
+  playList           Playlist[]
+  videos             Video[]
+  videoEngagement    VideoEngagement[]
 }
 
 model Video {
-  id            Int      @id @default(autoincrement())
-  title         String   @unique
-  description   String?
-  videoUrl      String
-  videoPublicId String
-  thumbnailUrl  String
-  views         Int      @default(0)
-  isPublished   Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  userId Int
-  user   User @relation(fields: [userId], references: [id])
-
+  id              Int               @id @default(autoincrement())
+  title           String            @unique
+  description     String?
+  videoUrl        String
+  thumbnailUrl    String
+  views           Int               @default(0)
+  isPublished     Boolean           @default(false)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  userId          Int
+  videoPublicId   String
   comments        Comment[]
+  Playlist_videos Playlist_videos[]
+  user            User              @relation(fields: [userId], references: [id])
   videoEngagement VideoEngagement[]
-  playlists       Playlist_videos[]
 }
 
 model VideoEngagement {
   videoId        Int
   userId         Int
   engagementType Engagement
-
-  video          Video      @relation(fields: [videoId], references: [id])
   user           User       @relation(fields: [userId], references: [id])
+  video          Video      @relation(fields: [videoId], references: [id])
 
-  @@unique([videoId, userId]) // If we do not use this then user can do both, like and dislike
+  @@unique([videoId, userId])
 }
 
 model Playlist {
@@ -75,12 +67,12 @@ model Playlist {
 }
 
 model Playlist_videos {
-  playListId Int
-  videosId   Int
-  playlist   Playlist @relation(fields: [playListId], references: [id])
-  video      Video    @relation(fields: [videosId], references: [id])
+  videoId   Int
+  playlistId Int
+  playlist   Playlist @relation(fields: [playlistId], references: [id])
+  Video      Video    @relation(fields: [videoId], references: [id])
 
-  @@unique([playListId, videosId])
+  @@unique([playlistId, videoId])
 }
 
 model Community {
@@ -98,23 +90,20 @@ model Community {
 model CommunityLikes {
   communityId Int
   userId      Int
-
-  community Community @relation(fields: [communityId], references: [id])
-  user      User      @relation(fields: [userId], references: [id])
+  community   Community @relation(fields: [communityId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
 
   @@unique([communityId, userId])
 }
 
 model Comment {
-  id        Int      @id @default(autoincrement())
-  content   String
-  createdAt DateTime @default(now())
-  videoId   Int
-  userId    Int
-
-  video Video @relation(fields: [videoId], references: [id])
-  user  User  @relation(fields: [userId], references: [id])
-
+  id         Int                 @id @default(autoincrement())
+  content    String
+  createdAt  DateTime            @default(now())
+  videoId    Int
+  userId     Int
+  user       User                @relation(fields: [userId], references: [id])
+  video      Video               @relation(fields: [videoId], references: [id])
   engagement CommentEngagement[]
 }
 
@@ -130,11 +119,9 @@ model CommentEngagement {
 model ChannelEngagement {
   channelId    Int
   subscriberId Int
-
-  channel    User     @relation("channel", fields: [channelId], references: [id])
-  subscriber User     @relation("subscriber", fields: [subscriberId], references: [id])
-  createdAt  DateTime @default(now())
-  // Figure out how to make behave one user can subscribe only once if press again then unsubscribe
+  createdAt    DateTime @default(now())
+  channel      User     @relation("channel", fields: [channelId], references: [id])
+  subscriber   User     @relation("subscriber", fields: [subscriberId], references: [id])
 
   @@unique([channelId, subscriberId])
 }
@@ -144,6 +131,5 @@ enum Engagement {
   DISLIKE
 }
 
-// Run prisma format to format your schema.
-// prisma db pull to sync your Prisma schema with the current state of the database
-// Run npx prisma generate and npx prisma migrate dev to apply the schema to database.
+// npx prisma db push to update schema
+// npx prisma migrate dev to migrate
