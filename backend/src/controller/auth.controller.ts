@@ -78,13 +78,13 @@ export const signUp = async (req: Request, res: Response) => {
 }
 
 export const setupProfile = async (req: Request, res: Response) => {
-    const { description } = req.body
+    const { channelName, description } = req.body
     const userId = (req as AuthRequest).userId
     // const files = req.files as { [fieldname: string]: Express.Multer.File[] }
     const files = req.files as MulterFileFields | undefined
 
-    const profilePicturePath = files?.profilePicture?.[0].path 
-    const coverPicturePath = files?.coverPicture?.[0].path
+    const profilePicturePath = files?.profilePicture?.[0]?.path 
+    const coverPicturePath = files?.coverPicture?.[0]?.path
 
     const existingUser = await prisma.user.findUnique({
       where:{
@@ -96,7 +96,19 @@ export const setupProfile = async (req: Request, res: Response) => {
       throw new ApiError(404, "User does not exist")
     }
 
-    const updateData: Record<string, any> = {};
+    const channelNameExists = await prisma.user.findUnique({
+      where: { 
+        channelName 
+      },
+    })
+
+    if(channelNameExists){
+      throw new ApiError(422, "Channel name already exists")
+    }
+
+    const updateData: Record<string, any> = {}
+
+    updateData.channelName = channelName
 
     if (profilePicturePath) {
       const uploadedProfile = await uploadImageOnCloudinary(profilePicturePath, userId)
@@ -121,7 +133,7 @@ export const setupProfile = async (req: Request, res: Response) => {
       })
     }
 
-    return new ApiResponse(200, "Profile updated").send(res)
+    return new ApiResponse(200, "Profile updated successfully").send(res)
 }
 
 // If existingUser is found, the ApiError will be thrown => .catch(next) from asyncHandler => Global error Handler(For customised error)
@@ -156,6 +168,36 @@ export const signIn = async (req: Request, res: Response) => {
   })
 
   return new ApiResponse(200, "Signed In successfully", { accessToken }).send(res)
+}
+
+export const getuserById = async (req: Request, res: Response) => {
+  const userId = (req as AuthRequest).userId
+
+  // check if any data you want to hide from other user such as email, playlists to implement this pass id from parameter, and check if userId and and id from param are same 
+
+  const user = await prisma.user.findUnique({
+    where:{
+      id:userId
+    },
+    select:{
+      id: true,
+      username: true,
+      email: true,
+      channelName: true,
+      profilePicture: true,
+      coverPicture: true,
+      description: true,
+      createdAt: true,
+      comments: true,
+      community: true,
+      playList: true,
+      videos: true
+    }
+  })
+
+  if(!user) throw new ApiError(404, "User does not exist")
+
+  return new ApiResponse(200, "User fetched successfully", user).send(res)
 }
 
 export const refresh = (req: Request, res: Response) => {

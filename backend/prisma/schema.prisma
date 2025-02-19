@@ -10,13 +10,14 @@ datasource db {
 model User {
   id                 Int                 @id @default(autoincrement())
   email              String              @unique
-  coverPicture       String?
-  createdAt          DateTime            @default(now())
-  description        String?
-  profilePicture     String?
-  updatedAt          DateTime            @updatedAt
   username           String              @unique
   password           String
+  channelName        String?             @unique 
+  coverPicture       String?
+  description        String?
+  profilePicture     String?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
   subscribers        ChannelEngagement[] @relation("channel")
   subscribedTo       ChannelEngagement[] @relation("subscriber")
   comments           Comment[]

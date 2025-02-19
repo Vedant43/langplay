@@ -14,6 +14,7 @@ export const signUpSchema = z.object({
 });
 
 export const setupProfileSchema = z.object({
+  channelName: z.string().min(3, "Channel name must be at least 3 characters long").nonempty("Channel name can not be empty"),
   profilePicture: z.instanceof(File).optional(),
   coverPicture: z.instanceof(File).optional(),
   description: z.string().max(500, "Description cannot exceed 500 characters").optional(),
