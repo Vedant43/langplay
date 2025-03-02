@@ -50,7 +50,7 @@ import { VideoCard } from "../Components/Video Card/VideoCard"
 
         return (
             <Container>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid lg:grid-cols-3 p-4 gap-4">
                     {videos.map((video, id) => (
                         <VideoCard 
                             key={id}

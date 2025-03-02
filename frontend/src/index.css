@@ -4,9 +4,9 @@
 @tailwind components;
 @tailwind utilities;
 
-.MuiButton-root {
+/* .MuiButton-root {
     font-family: "Poppins", sans-serif !important;
-  }
+  } */
 
 body {
   font-family: 'Poppins', sans-serif !important
@@ -17,8 +17,8 @@ body {
   padding: 0;
   box-sizing: border-box;
 }
-/* html, body {
+html, body {
   width: 100%;
   height: 100%;
-  overflow-x: hidden;
-} */
+  /* overflow-x: hidden; */
+}
