@@ -8,6 +8,8 @@ import useScreenType from "react-screentype-hook";
 export const Layout = () => {
 
     const [ isSidebarOpen, setIsSidebarOpen ] = useState(false)
+    const [ authStatus, setAuthStatus ] = useState(false)
+    let accessToken = localStorage.getItem('accessToken') 
     const screenType = useScreenType()
     const location = useLocation()
     const routesAllowingSidebar = ['/']
@@ -19,13 +21,19 @@ export const Layout = () => {
         }    
     }, [shouldShowSidebar])
 
+    useEffect(() => {
+        if( accessToken ) {
+            setAuthStatus(true)
+        }
+    }, [accessToken])
+
     const toggleSidebar = () => {
         setIsSidebarOpen(prev => !prev)
     }
 
     return (
         <div>
-            <Navbar toggleSidebar={toggleSidebar}/>
+            <Navbar toggleSidebar={toggleSidebar} authStatus={authStatus} setAuthStatus={setAuthStatus}/>
            
             {/* {isSidebarOpen && (
                 <div 

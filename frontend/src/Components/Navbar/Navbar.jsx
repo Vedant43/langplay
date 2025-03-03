@@ -1,12 +1,23 @@
 import { Container } from "../container/Container"
+import { useNavigate } from "react-router-dom"
 import MovieIcon from '@mui/icons-material/Movie'
 import SearchIcon from '@mui/icons-material/Search'
 import Button from '@mui/material/Button'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 import DensitySmallIcon from '@mui/icons-material/DensitySmall'
 import { Link } from "react-router-dom"
+import { useEffect, useState } from "react"
+import VideoCallIcon from '@mui/icons-material/VideoCall';
+import avatar from "../../assets/default-avatar.jpg"
 
-export const Navbar = ({toggleSidebar}) => {
+export const Navbar = ({toggleSidebar, authStatus, setAuthStatus}) => {
+
+    useEffect(()=> {
+        if (localStorage.getItem("accessToken")) {
+            setAuthStatus(true)
+            console.log("navbar")
+        }
+    },[])
 
     return (
         <header 
@@ -79,45 +90,87 @@ export const Navbar = ({toggleSidebar}) => {
                         </div>
                     </div>
 
-                     {/* Right section  */}
-                    <div 
-                        className="flex items-center gap-2"
-                    >
-
-                        <div 
-                            className="hidden lg:block"
-                        >
-                            <Button 
-                                variant="text" 
-                                sx={{
-                                    color:"black", 
-                                    borderRadius:2, 
-                                    ":hover": {
-                                        background:"rgba(0, 0, 0, 0.1)"
-                                    }
-                                }} 
+                     {/* Right section for desktop screens*/}
+                    {authStatus ? 
+                        (
+                            <div 
+                            className="flex items-center gap-4"
+                        >                        
+                            <div 
+                                className="hidden lg:block"
                             >
-                                Log in
-                            </Button>
-                        </div>
+                                <Link to={"/upload"} > 
+                                    <VideoCallIcon 
+                                        sx={{
+                                            color:"#616494",
+                                            fontSize:34
+                                        }}
+                                    />
+                                </Link>
+                            </div>
 
-                        <div 
-                            className="hidden lg:block"
-                        >
-                            <Button 
-                                variant="contained" 
-                                sx={{
-                                    borderRadius: 2, 
-                                    backgroundColor:"customColor.primary" , 
-                                    fontSize:12, 
-                                    width:80, 
-                                    paddingX:0
-                                }}
+                            <div 
+                                className="hidden lg:block"
                             >
-                                Sign up 
-                            </Button>
+                                <Link
+                                    to={"/profile"}
+                                >
+                                    <img className="w-10 h-10 rounded-full" src={avatar} alt="Rounded avatar" />
+                                </Link>
+                            </div>
                         </div>
+                        ):
+                        (
+<div 
+                            className="flex items-center gap-2"
+                        >                        
+                            <div 
+                                className="hidden lg:block"
+                            >
+                            
+                                <Link to={"/signin"} > 
+                                    <Button 
+                                        variant="text" 
+                                        sx={{
+                                            color:"black", 
+                                            borderRadius:2, 
+                                            ":hover": {
+                                                background:"rgba(0, 0, 0, 0.1)"
+                                            }
+                                        }} 
+                                    >
+                                        Sign in
+                                    </Button>
+                                </Link>
+                            </div>
 
+                            <div 
+                                className="hidden lg:block"
+                            >
+                                <Link
+                                    to={"/signup"}
+                                >
+                                    <Button 
+                                        variant="contained" 
+                                        sx={{
+                                            borderRadius: 2, 
+                                            backgroundColor:"customColor.primary" , 
+                                            fontSize:12, 
+                                            width:80, 
+                                            paddingX:0
+                                        }}
+                                    >
+                                        Sign up 
+                                    </Button>
+                                </Link>
+                            </div>
+                        </div>
+                    ) }
+                    
+
+                    {/* Right section for mobile screens */}
+                    <div className="flex items-center gap-2 lg:hidden">
+                        
                         <div 
                             className="lg:hidden flex"
                         >
@@ -141,7 +194,7 @@ export const Navbar = ({toggleSidebar}) => {
                                     className="text-[24px]" 
                                 />
                             </Button>
-                        </div>
+                        </div> 
                     </div>
                 </nav>
             </Container>

@@ -1,6 +1,6 @@
 import React from 'react'
 
-export const InputField = ({label, placeholder, icon, type, id, value, setFormData}) => {
+export const InputField = ({label, placeholder, icon, type, id, register, errors}) => {
   return (
     <div 
       className='mb-3'
@@ -21,16 +21,21 @@ export const InputField = ({label, placeholder, icon, type, id, value, setFormDa
         </div>      
         
         <input
-            className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition duration-150 ease-in-out"
+            className={`w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-primary focus:border-primary  transition duration-150 ease-in-out ${errors[id] ? `focus:border-red-950 focus:outline-red-700` : `focus:outline-primary`}`}
             type={type}
-            value={value}
             id={id}
             placeholder={placeholder}
-            onChange={(e) => setFormData((prev) => (
-              { ...prev, [id]:e.target.value}))
-            } 
-            required
+            {...register(id, {
+              required: `${id} is required`
+            })}
         />
+
+          {errors[id] && (
+            <span className='text-red-400 text-xs mt-1 text-balance block break-words'>
+              {errors[id].message}
+            </span>
+          )
+        }
     </div>
   )
 }

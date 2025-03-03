@@ -21,17 +21,24 @@ export const signUp = async (req: Request, res: Response) => {
     // const profilePicture = files?.profilePicture?.[0]?.path || null
     // const coverPicture = files?.coverPicture?.[0]?.path || null
     
-    const existingUser = await prisma.user.findFirst({
+    const existingUsername = await prisma.user.findFirst({
       where: {
-        OR: [
-          { email },
-          { username },
-        ],
+          username 
       },
     })
 
-    if (existingUser) {
-      throw new ApiError(400, "Email or username already exists.");
+    if (existingUsername) {
+      throw new ApiError(400, "Username already exists");
+    }
+
+    const existingEmail = await prisma.user.findFirst({
+      where: {
+          email 
+      },
+    })
+
+    if (existingEmail) {
+      throw new ApiError(400, "Email already exists");
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -75,6 +82,43 @@ export const signUp = async (req: Request, res: Response) => {
     })
     
     return new ApiResponse(201, "User signed up successfully", { newUser, accessToken}).send(res); 
+}
+
+export const signIn = async (req: Request, res: Response) => {
+  const { password } = req.body
+  const username = req.body.usernameOrEmail
+  const email = req.body.usernameOrEmail
+
+  // Can't use findUniqueOrThrow because it can not more than 1 unique field in OR: [ {},{} ]
+  const user = await prisma.user.findFirst({
+    where: {
+      OR: [
+        { username },
+        { email }
+      ]
+    }
+  })
+  
+  if (!user) {
+    throw new ApiError(404, "Invalid username or password");
+  }
+  
+  const isValidPassword = await bcrypt.compare(password, user.password)
+  
+  if(!isValidPassword) {
+    throw new ApiError(401, "Invalid password")
+  }
+
+  const accessToken = generateAccessToken({ userId: user.id, username:user.username })
+  const refreshToken = generateRefreshToken({ userId: user.id, username:user.username })
+
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    secure:true
+  })
+
+  return new ApiResponse(200, "Signed In successfully", { accessToken }).send(res)
 }
 
 export const setupProfile = async (req: Request, res: Response) => {
@@ -137,43 +181,6 @@ export const setupProfile = async (req: Request, res: Response) => {
 }
 
 // If existingUser is found, the ApiError will be thrown => .catch(next) from asyncHandler => Global error Handler(For customised error)
-
-export const signIn = async (req: Request, res: Response) => {
-  const { password } = req.body
-  const username = req.body.usernameOrEmail
-  const email = req.body.usernameOrEmail
-
-  // Can't use findUniqueOrThrow because it can not more than 1 unique field in OR: [ {},{} ]
-  const user = await prisma.user.findFirst({
-    where: {
-      OR: [
-        { username },
-        { email }
-      ]
-    }
-  })
-  
-  if (!user) {
-    throw new ApiError(404, "User not found");
-  }
-  
-  const isValidPassword = await bcrypt.compare(password, user.password)
-  
-  if(!isValidPassword) {
-    throw new ApiError(401, "Invalid password")
-  }
-
-  const accessToken = generateAccessToken({ userId: user.id, username:user.username })
-  const refreshToken = generateRefreshToken({ userId: user.id, username:user.username })
-
-  res.cookie("refreshToken", refreshToken, {
-    httpOnly: true,
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-    secure:true
-  })
-
-  return new ApiResponse(200, "Signed In successfully", { accessToken }).send(res)
-}
 
 export const getuserById = async (req: Request, res: Response) => {
   const userId = (req as AuthRequest).userId

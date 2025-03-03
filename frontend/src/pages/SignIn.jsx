@@ -1,11 +1,44 @@
-import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import {Container } from '../Components/container/Container'
-import { SignInForm } from '../Components/AuthForm/SignInForm'
+import React, { useEffect, useState } from 'react'
+import { useForm } from "react-hook-form"
+import { Loader } from '../Components/AuthForm/Loader'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { signInSchema } from '@vedant567/neotube-common'
+import axios from 'axios'
+import { Link } from 'react-router-dom'
+import { InputField } from '../Components/AuthForm/InputField'
+import PersonIcon from '@mui/icons-material/Person'
+import HttpsIcon from '@mui/icons-material/Https'
 
 export const SignIn = () => {
 
   const navigate = useNavigate()
+  const [loading, setLoading] = useState(false);
+
+    const { register, handleSubmit, setError, reset, formState: { errors }, } = useForm({
+        mode: "onChange",
+        defaultValues: {
+            usernameOrEmail: "",
+            password:""
+          },
+        resolver: zodResolver(signInSchema)
+    })
+
+    const onSubmit = async (data) => {
+        setLoading(true)
+        try {
+            const user = await axios.post("http://localhost:3000/api/v1/user/signin", data)
+            setLoading(false)
+            localStorage.setItem('accessToken', user.data.data.accessToken)   
+            navigate("/") 
+        } catch (error) {
+            setLoading(false)
+            reset({ usernameOrEmail: "", password: "" }) 
+            setError("dbError",{ type: "db", message: error.response.data.message })
+            // yet to handle server error
+        }
+    }
 
   const closeSignIn = () => {
     navigate('/')
@@ -23,8 +56,68 @@ export const SignIn = () => {
         <div 
           className="z-10 w-full max-w-md"
         >
-            <SignInForm />
+            <div 
+            className='flex items-center justify-center w-full lg:w-4/5 max-w-96 mx-auto p-8 bg-white rounded-lg shadow-2xl border border-gray-200'
+        >
+            <div 
+                className='flex flex-col'
+            >
+                <h3 
+                    className='flex justify-center items-center text-primary mb-4'
+                >
+                    Sign In
+                </h3>
+
+                {loading ? 
+                <Loader /> : 
+                <form 
+                    onSubmit={handleSubmit(onSubmit)}
+                >
+                    <InputField 
+                        label={"Username or email:"} 
+                        placeholder={"Enter your username or email"}
+                        icon={<PersonIcon sx={{ fontSize:18}}/>}
+                        type={"text"}
+                        id={"usernameOrEmail"}
+                        register={register}
+                        errors={errors}
+                    />      
+                    <InputField 
+                        label={"Password:"} 
+                        placeholder={"Enter your password"}
+                        icon={<HttpsIcon sx={{ fontSize:18}}/>}
+                        type={"password"}
+                        id={"password"}
+                        register={register}
+                        errors={errors}
+                    />
+                    <div 
+                        className='mt-4'
+                    >
+                        <button
+                            className='w-full bg-primary hover:bg-h-primary text-white font-medium py-2 px-4 rounded-md shadow-sm transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 flex items-center justify-center'
+                            type='submit'
+                        >
+                            Sign Up
+                        </button>
+
+                        {errors.dbError && (
+                            <p className="text-red-400 pt-1 text-xs text-center">
+                                {errors.dbError.message}
+                            </p>
+                        )}
+
+                        <p 
+                            className='pt-2 flex'
+                        >
+                            Don't have an account? <Link to={"/signup"} className='nunderline'> Sign Up </Link> 
+                        </p>
+
+                    </div>
+                </form>}
+            </div>
         </div>
+      </div>
     </Container>
   )
 }
