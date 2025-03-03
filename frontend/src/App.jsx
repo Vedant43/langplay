@@ -3,7 +3,6 @@ import { Layout } from "./Components/layout/Layout"
 import { HomePage } from "./pages/HomePage.jsx"
 import { SignUp } from "./pages/SignUp.jsx"
 import { SignIn } from "./pages/SignIn.jsx"
-import { SetupProfileForm } from "./pages/SetUpProfileForm.jsx"
 
 function App() {
 
