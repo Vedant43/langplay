@@ -173,7 +173,28 @@ export const getLikedVideos = async (req: Request, res: Response) => {
 }
 
 export const getAllVideos = async (req: Request, res: Response) => {
+    const videos = await prisma.video.findMany({
+        select:{
+            id: true,
+            title: true,
+            description: true,
+            videoUrl: true,
+            videoPublicId: true,
+            thumbnailUrl: true,
+            userId: true,
+            views: true,
+            createdAt: true,
+            user: {
+                select: {
+                    id: true,
+                    username: true,
+                    profilePicture: true
+                }
+            }
+        }
+    })
 
+    return new ApiResponse(200, "Fetched all videos...", videos).send(res)
 }
 
 export const likeVideo = async (req: Request, res: Response) => {

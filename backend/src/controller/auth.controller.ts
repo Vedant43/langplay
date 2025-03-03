@@ -144,16 +144,21 @@ export const signIn = async (req: Request, res: Response) => {
   const email = req.body.usernameOrEmail
 
   // Can't use findUniqueOrThrow because it can not more than 1 unique field in OR: [ {},{} ]
-  const user = await prisma.user.findFirstOrThrow({ 
+  const user = await prisma.user.findFirst({
     where: {
-      OR: [ 
-        { username }, 
-        { email } 
+      OR: [
+        { username },
+        { email }
       ]
     }
   })
   
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+  
   const isValidPassword = await bcrypt.compare(password, user.password)
+  
   if(!isValidPassword) {
     throw new ApiError(401, "Invalid password")
   }
