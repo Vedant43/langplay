@@ -9,11 +9,13 @@ export const Layout = () => {
 
     const [ isSidebarOpen, setIsSidebarOpen ] = useState(false)
     const [ authStatus, setAuthStatus ] = useState(false)
-    let accessToken = localStorage.getItem('accessToken') 
     const screenType = useScreenType()
     const location = useLocation()
+
     const routesAllowingSidebar = ['/']
     const shouldShowSidebar = routesAllowingSidebar.includes(location.pathname) // using different variable instead of direct state to gain control over toggling
+
+    let accessToken = localStorage.getItem('accessToken') 
 
     useEffect(() => {
         if(shouldShowSidebar && screenType.isDesktop) {
@@ -33,7 +35,7 @@ export const Layout = () => {
 
     return (
         <div>
-            <Navbar toggleSidebar={toggleSidebar} authStatus={authStatus} setAuthStatus={setAuthStatus}/>
+            <Navbar toggleSidebar={toggleSidebar} />
            
             {/* {isSidebarOpen && (
                 <div 

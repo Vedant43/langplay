@@ -5,16 +5,20 @@ import { useForm } from "react-hook-form"
 import { Loader } from '../Components/AuthForm/Loader'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { signInSchema } from '@vedant567/neotube-common'
-import axios from 'axios'
+import avatar from "../assets/default-avatar.jpg"
 import { Link } from 'react-router-dom'
 import { InputField } from '../Components/AuthForm/InputField'
 import PersonIcon from '@mui/icons-material/Person'
 import HttpsIcon from '@mui/icons-material/Https'
+import UserApi from "../api/user"
+import { useDispatch } from 'react-redux'
+import { setUser } from "../Components/redux/features/authSlice"
 
 export const SignIn = () => {
 
   const navigate = useNavigate()
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false)
+  const dispatch = useDispatch()
 
     const { register, handleSubmit, setError, reset, formState: { errors }, } = useForm({
         mode: "onChange",
@@ -25,24 +29,52 @@ export const SignIn = () => {
         resolver: zodResolver(signInSchema)
     })
 
+    // const onSubmit = async (data) => {
+    //     setLoading(true)
+    //     try {
+    //         const user = await axios.post("http://localhost:3000/api/v1/user/signin", data)
+    //         setLoading(false)
+
+    //         const { profilePicture, channelName } = user
+    //         dispatch(setUser({profilePicture, channelName}))
+    //         localStorage.setItem('accessToken', user.data.data.accessToken)   
+    //         navigate("/") 
+    //     } catch (error) {
+    //         setLoading(false)
+    //         reset({ usernameOrEmail: "", password: "" }) 
+    //         setError("dbError",{ type: "db", message: error.response.data.message })
+    //         // yet to handle server error
+    //     }
+    // }
+
     const onSubmit = async (data) => {
         setLoading(true)
-        try {
-            const user = await axios.post("http://localhost:3000/api/v1/user/signin", data)
+
+        UserApi.userSignIn(data)
+        .then((response) => {
             setLoading(false)
-            localStorage.setItem('accessToken', user.data.data.accessToken)   
+
+            let channelName = response.user.channelName
+            let profilePicture = response.user.profilePicture
+            
+            if (!profilePicture) profilePicture = avatar
+
+            dispatch(setUser({profilePicture, channelName}))
+
+            localStorage.setItem('accessToken', response.accessToken)   
             navigate("/") 
-        } catch (error) {
+        })
+        .catch((error) => {
             setLoading(false)
             reset({ usernameOrEmail: "", password: "" }) 
-            setError("dbError",{ type: "db", message: error.response.data.message })
-            // yet to handle server error
-        }
+            console.log(error)
+        })
+
     }
 
-  const closeSignIn = () => {
-    navigate('/')
-  }
+    const closeSignIn = () => {
+        navigate('/')
+    }
 
   return (
     <Container 
@@ -98,14 +130,14 @@ export const SignIn = () => {
                             className='w-full bg-primary hover:bg-h-primary text-white font-medium py-2 px-4 rounded-md shadow-sm transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 flex items-center justify-center'
                             type='submit'
                         >
-                            Sign Up
+                            Sign In
                         </button>
 
-                        {errors.dbError && (
+                        {/* {errors.dbError && (
                             <p className="text-red-400 pt-1 text-xs text-center">
                                 {errors.dbError.message}
                             </p>
-                        )}
+                        )} */}
 
                         <p 
                             className='pt-2 flex'

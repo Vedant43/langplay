@@ -16,6 +16,7 @@
     "@mui/icons-material": "^6.4.6",
     "@mui/material": "^6.4.6",
     "@radix-ui/themes": "^3.2.0",
+    "@reduxjs/toolkit": "^2.6.0",
     "@tailwindcss/postcss": "^4.0.9",
     "@tailwindcss/vite": "^4.0.9",
     "@vedant567/neotube-common": "^1.0.0",
@@ -24,8 +25,12 @@
     "react-dom": "^19.0.0",
     "react-easy-crop": "^5.4.1",
     "react-hook-form": "^7.54.2",
+    "react-hot-toast": "^2.5.2",
+    "react-redux": "^9.2.0",
     "react-router-dom": "^7.2.0",
     "react-screentype-hook": "^1.0.18",
+    "react-toastify": "^11.0.5",
+    "redux": "^5.0.1",
     "zod": "^3.24.2"
   },
   "devDependencies": {

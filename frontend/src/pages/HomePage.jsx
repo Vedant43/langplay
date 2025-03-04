@@ -1,3 +1,4 @@
+import { useSelector } from "react-redux"
 import { Container } from "../Components/container/Container"
 import { VideoCard } from "../Components/Video Card/VideoCard"
 
@@ -48,9 +49,21 @@ import { VideoCard } from "../Components/Video Card/VideoCard"
             }
         ]  
 
+        const { authStatus, channelName } = useSelector((state) => state.auth)
+
         return (
             <Container>
+
+                {channelName === null ? 
+                    <div className="flex w-full bg-red-100">
+                        <p className="bg-red-100 text-red-800 mx-auto">!Update channel name!</p>
+                    </div> 
+                    :
+                    ''
+                    }
+
                 <div className="grid lg:grid-cols-3 p-4 gap-4">
+                    {channelName}
                     {videos.map((video, id) => (
                         <VideoCard 
                             key={id}

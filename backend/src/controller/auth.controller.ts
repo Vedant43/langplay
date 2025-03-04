@@ -66,9 +66,6 @@ export const signUp = async (req: Request, res: Response) => {
         username,
         email,
         password: hashedPassword,
-        // profilePicture: profilePictureUrl,
-        // coverPicture: coverPictureUrl,
-        // description: description ?? null,
       },
     });
 
@@ -96,11 +93,18 @@ export const signIn = async (req: Request, res: Response) => {
         { username },
         { email }
       ]
+    },
+    select:{
+      id:true,
+      username:true,
+      profilePicture: true,
+      channelName: true,
+      password: true
     }
   })
   
   if (!user) {
-    throw new ApiError(404, "Invalid username or password");
+    throw new ApiError(404, "Invalid username or password")
   }
   
   const isValidPassword = await bcrypt.compare(password, user.password)
@@ -118,7 +122,24 @@ export const signIn = async (req: Request, res: Response) => {
     secure:true
   })
 
-  return new ApiResponse(200, "Signed In successfully", { accessToken }).send(res)
+  return new ApiResponse(200, "Signed In successfully", { accessToken, user }).send(res)
+}
+
+export const getProfilePicAndChannelNameStatus = async (req: Request, res: Response) => {
+  const userId = (req as AuthRequest).userId
+
+  const profilePicAndChannelName = await prisma.user.findFirst({
+      where: { 
+        id: userId 
+      },
+      select: {
+        profilePicture:true,
+        channelName:true
+      }
+    }
+  )
+
+  return new ApiResponse(200, "Fetched successfully", profilePicAndChannelName).send(res)
 }
 
 export const setupProfile = async (req: Request, res: Response) => {
@@ -180,8 +201,6 @@ export const setupProfile = async (req: Request, res: Response) => {
     return new ApiResponse(200, "Profile updated successfully").send(res)
 }
 
-// If existingUser is found, the ApiError will be thrown => .catch(next) from asyncHandler => Global error Handler(For customised error)
-
 export const getuserById = async (req: Request, res: Response) => {
   const userId = (req as AuthRequest).userId
 
@@ -226,4 +245,6 @@ export const refresh = (req: Request, res: Response) => {
 
   const newAccessToken = generateAccessToken({ userId: (decoded as any).userId, username: decoded.username });
   res.json({ accessToken: newAccessToken });
-};
+}
+
+// If existingUser is found, the ApiError will be thrown => .catch(next) from asyncHandler => Global error Handler(For customised error)

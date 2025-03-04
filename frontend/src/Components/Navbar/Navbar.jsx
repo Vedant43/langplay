@@ -1,5 +1,6 @@
 import { Container } from "../container/Container"
 import { useNavigate } from "react-router-dom"
+import { useSelector,useDispatch } from "react-redux"
 import MovieIcon from '@mui/icons-material/Movie'
 import SearchIcon from '@mui/icons-material/Search'
 import Button from '@mui/material/Button'
@@ -9,15 +10,19 @@ import { Link } from "react-router-dom"
 import { useEffect, useState } from "react"
 import VideoCallIcon from '@mui/icons-material/VideoCall';
 import avatar from "../../assets/default-avatar.jpg"
+import { logout } from "../redux/features/authSlice"
 
-export const Navbar = ({toggleSidebar, authStatus, setAuthStatus}) => {
+export const Navbar = ({toggleSidebar}) => {
 
-    useEffect(()=> {
-        if (localStorage.getItem("accessToken")) {
-            setAuthStatus(true)
-            console.log("navbar")
-        }
-    },[])
+    // useEffect(()=> {
+    //     if (localStorage.getItem("accessToken")) {
+    //         setAuthStatus(true)
+    //         console.log("navbar")
+    //     }
+    // },[])
+
+    const dispatch = useDispatch()
+    const { authStatus, profilePicture } = useSelector((state) => state.auth)
 
     return (
         <header 
@@ -115,13 +120,14 @@ export const Navbar = ({toggleSidebar, authStatus, setAuthStatus}) => {
                                 <Link
                                     to={"/profile"}
                                 >
-                                    <img className="w-10 h-10 rounded-full" src={avatar} alt="Rounded avatar" />
+                                    <img className="w-10 h-10 rounded-full" src={profilePicture} alt="Rounded avatar" />
                                 </Link>
                             </div>
+                            <button onClick={() => dispatch(logout())}>Logout</button>
                         </div>
                         ):
                         (
-<div 
+                        <div 
                             className="flex items-center gap-2"
                         >                        
                             <div 

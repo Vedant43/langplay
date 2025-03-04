@@ -3,7 +3,7 @@ import { Container } from '../Components/container/Container'
 import { useState } from 'react'
 import { z } from 'zod'
 import { Loader } from '../Components/AuthForm/Loader'
-import axios from 'axios'
+import avatar from "../assets/default-avatar.jpg"
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, useNavigate } from 'react-router-dom'
@@ -12,6 +12,9 @@ import { InputField } from '../Components/AuthForm/InputField'
 import PersonIcon from '@mui/icons-material/Person'
 import EmailIcon from '@mui/icons-material/Email'
 import HttpsIcon from '@mui/icons-material/Https'
+import UserApi from "../api/user"
+import { setUser } from '../Components/redux/features/authSlice'
+import { useDispatch } from 'react-redux'
 
 export const SignUp = () => {
 
@@ -21,24 +24,49 @@ export const SignUp = () => {
     })
     const [ isLoading, setIsLoading ] = useState(false)
     const navigate = useNavigate()
+    const dispatch = useDispatch()
   
-    const onSubmit = async (data) => {
-          setIsLoading(true)
+    // const onSubmit = async (data) => {
+    //       setIsLoading(true)
 
-          try {
-              const { confirmPassword, ...backendData } = data
-              const user = await axios.post("http://localhost:3000/api/v1/user/signup", backendData)
-              setIsLoading(false)
-              localStorage.setItem('accessToken', user.data.data.accessToken)
-              navigate("/")
-          } catch (error) {
-              console.log(error)
-              setIsLoading(false)
-              reset({ username: "", email:"", password: "", confirmPassword: "" }) 
-              setError("dbError",{ type: "db", message: error.response.data.message })
-              // yet to handle server error, can be handled by checking time for setIsLoading(true)
-            }
-      }
+    //       try {
+    //           const { confirmPassword, ...backendData } = data
+    //           const user = await axios.post("http://localhost:3000/api/v1/user/signup", backendData)
+    //           setIsLoading(false)
+    //           localStorage.setItem('accessToken', user.data.data.accessToken)
+    //           navigate("/")
+    //       } catch (error) {
+    //           console.log(error)
+    //           setIsLoading(false)
+    //           reset({ username: "", email:"", password: "", confirmPassword: "" }) 
+    //           setError("dbError",{ type: "db", message: error.response.data.message })
+    //           // yet to handle server error, can be handled by checking time for setIsLoading(true)
+    //         }
+    //   }
+
+    const onSubmit = async (data) => {
+      setIsLoading(true)
+
+      UserApi.userSignUp(data)
+      .then((response) => {
+        setIsLoading(false)
+
+          let channelName = response.newUser.channelName
+          let profilePicture = response.newUser.profilePicture
+
+          if (!profilePicture) profilePicture = avatar
+          dispatch(setUser({profilePicture, channelName}))
+
+          localStorage.setItem('accessToken', response.accessToken)   
+          navigate("/") 
+      })
+      .catch((error) => {
+        setIsLoading(false)
+        reset({ username: "", email:"", password: "", confirmPassword: "" })  
+        console.log(error)
+      })
+    
+    }
   
     const closeSignUp = () => {
       navigate('/')

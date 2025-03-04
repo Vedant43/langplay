@@ -8,18 +8,22 @@ export const authenticate : RequestHandler = (req: Request, res: Response, next:
     const authHeader = (req.headers as { authorization?: string }).authorization
 
     if(!authHeader || !authHeader.startsWith('Bearer')){
-        throw new ApiError(401, "Unauthorized")
+        throw new ApiError(401, "Unauthorized!!")
     }
 
     const token = authHeader.split(" ")[1]
-    const decoded = verifyToken(token)
-
-    if(!decoded){
-        throw new ApiError(403, "Invalid or expired token")
+    try {
+        const decoded = verifyToken(token)
+    
+        if(!decoded){
+            throw new ApiError(401, "Unauthorized!!")
+        }
+        //check what is returned by verifytoken if failed
+        (req as unknown as AuthRequest).userId = decoded.userId as number
+        (req as unknown as AuthRequest).username = decoded.username
+    
+        next()
+    } catch (error) {
+        throw new ApiError(401, "Unauthorized!!")
     }
-    //check what is returned by verifytoken if failed
-    (req as unknown as AuthRequest).userId = decoded.userId as number
-    (req as unknown as AuthRequest).username = decoded.username
-
-    next()
 }
