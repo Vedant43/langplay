@@ -16,7 +16,7 @@ import UserApi from "../api/user"
 import { setUser } from '../Components/redux/features/authSlice'
 import { useDispatch } from 'react-redux'
 
-export const SignUp = () => {
+export const SignUpPage = () => {
 
     const { register, handleSubmit, setError, reset, formState: { errors }, } = useForm({
       mode: "onChange",
@@ -50,12 +50,12 @@ export const SignUp = () => {
       UserApi.userSignUp(data)
       .then((response) => {
         setIsLoading(false)
-
+          const { username, id } = response
           let channelName = response.newUser.channelName
           let profilePicture = response.newUser.profilePicture
 
           if (!profilePicture) profilePicture = avatar
-          dispatch(setUser({profilePicture, channelName}))
+          dispatch(setUser({profilePicture, channelName, username, id }))
 
           localStorage.setItem('accessToken', response.accessToken)   
           navigate("/") 

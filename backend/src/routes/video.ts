@@ -12,7 +12,7 @@ router.post("/upload", authenticate, uploadVideoWithThumbnail, validate(videoUpl
 
 router.delete("/:id", authenticate, asyncHandler(deleteVideoById))
 
-router.get("/:userId/videos", authenticate, asyncHandler(getVideosByUser))
+router.get("/:userId/videos", asyncHandler(getVideosByUser))
 
 router.get("/", authenticate, asyncHandler(getAllVideos))
 

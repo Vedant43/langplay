@@ -6,6 +6,17 @@ import ApiError from "../utils/ApiError"
 
 const prisma = new PrismaClient()
 
+export const getPlaylistsById = async (req: Request, res: Response) => {
+    const { userId } = (req as AuthRequest)
+
+    const playlists = await prisma.playlist.findMany({
+        where: {
+            userId: userId
+        },
+    })
+    return new ApiResponse(200, "Fetched playlists successfully", playlists).send(res)
+}
+
 export const createPlaylist = async (req: Request, res: Response) => {
     const { name } = req.body
     const userId = (req as AuthRequest).userId
@@ -33,6 +44,8 @@ export const createPlaylist = async (req: Request, res: Response) => {
 
 export const saveVideoToPlaylist = async (req: Request, res: Response) => {
     // const { videoId, playlistId } = req.body
+    console.log("req.body")
+    console.log(req.body)
     const videoId = parseInt(req.body.videoId, 10)
     const playlistId = parseInt(req.body.playlistId, 10)
 
@@ -41,10 +54,18 @@ export const saveVideoToPlaylist = async (req: Request, res: Response) => {
             videoId,
             playlistId
         }
-    });
+    })
 
     if (videoExists) {
-        throw new ApiError(400, "Video already exists in the playlist")
+        await prisma.playlist_videos.delete({
+            where: {
+                playlistId_videoId: {
+                    playlistId: Number(playlistId),
+                    videoId: Number(videoId)
+                }
+            }
+        })
+        return new ApiResponse(200, "Video removed from the playlist")
     }
 
     await prisma.playlist_videos.create({
@@ -70,15 +91,6 @@ export const removeVideoFromPlaylist = async (req: Request, res: Response) => {
     if (!videoExists) {
         throw new ApiError(404, "Video not found in the playlist")
     }
-    
-    await prisma.playlist_videos.delete({
-        where: {
-            playlistId_videoId: {
-                playlistId: Number(playlistId),
-                videoId: Number(videoId)
-            }
-        }
-    })
 
     return new ApiResponse(200, "Video removed from playlist").send(res)
 }

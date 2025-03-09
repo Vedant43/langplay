@@ -63,7 +63,6 @@ import { VideoCard } from "../Components/Video Card/VideoCard"
                     }
 
                 <div className="grid lg:grid-cols-3 p-4 gap-4">
-                    {channelName}
                     {videos.map((video, id) => (
                         <VideoCard 
                             key={id}

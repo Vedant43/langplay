@@ -26,7 +26,7 @@ export const Navbar = ({toggleSidebar}) => {
 
     return (
         <header 
-            className="fixed top-0 w-full z-50 h-16 border border-b-slate-300 bg-white shadow-md z-100"
+            className="fixed top-0 w-full z-50 h-16 border border-solid border-b-zinc-400 bg-white shado z-100"
         >
             <Container className="">
                 <nav 

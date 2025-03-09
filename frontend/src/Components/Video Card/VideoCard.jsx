@@ -4,9 +4,14 @@ import { Link } from 'react-router-dom'
 export const VideoCard = ({thumbnail, title, channelName, views, duration}) => {
   return (
     <div className=''>
-      <div className='w-full rounded'>
+      <div 
+        className='w-full rounded'
+      >
         <Link>
-          <img src={thumbnail} className='w-full h-48 object-cover' />
+          <img 
+            src={thumbnail} 
+            className='w-full h-48 object-cover' 
+          />
         </Link>
         <p>
           {duration}
@@ -14,9 +19,15 @@ export const VideoCard = ({thumbnail, title, channelName, views, duration}) => {
       </div>
 
       <div>
-        <h3 className=''>{title}</h3>
-        <p className=''>{channelName}</p>
-        <p>{views}</p>
+        <h3 className=''>
+          {title}
+        </h3>
+        <p className=''>
+          {channelName}
+        </p>
+        <p>
+          {views}
+        </p>
       </div>
       
     </div>

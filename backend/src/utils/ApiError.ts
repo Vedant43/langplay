@@ -3,7 +3,7 @@ import { Response } from "express";
 class ApiError extends Error {
   public readonly success: boolean;
   public readonly statusCode: number;
-  public readonly details?: unknown; // For validation erroes
+  public readonly details?: unknown;
 
   constructor(statusCode: number, message: string, details?: unknown) {
     super(message);

@@ -133,8 +133,10 @@ export const getProfilePicAndChannelNameStatus = async (req: Request, res: Respo
         id: userId 
       },
       select: {
+        id: true,
         profilePicture:true,
-        channelName:true
+        channelName:true,
+        username:true
       }
     }
   )

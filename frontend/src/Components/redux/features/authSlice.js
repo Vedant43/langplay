@@ -5,13 +5,17 @@ export const authSlice = createSlice({
     initialState: {
         authStatus: !!localStorage.getItem("accessToken"),
         profilePicture: null,
-        channelName: ''
+        channelName: '',
+        username: '',
+        id:''
     },
     reducers: {
         setUser: (state,action) => {
             state.authStatus = true
             state.profilePicture = action.payload.profilePicture,
-            state.channelName = action.payload.channelName
+            state.channelName = action.payload.channelName,
+            state.username = action.payload.username,
+            state.id = action.payload.id
         },
         logout: (state) => {
             state.authStatus = false

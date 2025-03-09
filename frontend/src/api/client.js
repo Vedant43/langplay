@@ -24,7 +24,13 @@ apiClient.interceptors.request.use(
 )
 
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // if (response.data) {
+    //   console.log(response.data.message)
+    //   toast.success(response.data.message)
+    // }
+    return Promise.resolve(response)
+  },
   (error) => {
     console.log(error)
     if (error.response) {

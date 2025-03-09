@@ -14,14 +14,12 @@ export const authenticate : RequestHandler = (req: Request, res: Response, next:
     const token = authHeader.split(" ")[1]
     try {
         const decoded = verifyToken(token)
-    
         if(!decoded){
             throw new ApiError(401, "Unauthorized!!")
         }
         //check what is returned by verifytoken if failed
         (req as unknown as AuthRequest).userId = decoded.userId as number
         (req as unknown as AuthRequest).username = decoded.username
-    
         next()
     } catch (error) {
         throw new ApiError(401, "Unauthorized!!")

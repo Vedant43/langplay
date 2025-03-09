@@ -7,13 +7,11 @@ const fetchProfileInfo = async () => {
 
 const userSignIn = async (data) => {
     const response = await apiClient.post("user/signin", data, { NoAuth : true })
-    console.log(response)
     return response.data.data
 }
 
 const userSignUp = async (data) => {
     const response = await apiClient.post("user/signup", data, { NoAuth : true })
-    console.log(response)
     return response.data.data
 }
 

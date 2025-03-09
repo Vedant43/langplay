@@ -40,7 +40,7 @@ export const Sidebar = ({isSidebarOpen}) => {
         <div className="min-h-screen">
             <Container className="flex">
                 <ul
-                    className={`flex flex-col pt-8 overflow-hidden left-0 top-16 h-[calc(100vh-4rem)] z-20 transition-all duration-300 ${isSidebarOpen ? 'w-48' : 'hidden lg:block lg:w-16'}`}
+                    className={`flex flex-col pt-8 overflow-hidden left-0 top-16 h-[calc(100vh-4rem)] z-20 transition-all duration-300 ${isSidebarOpen ? 'w-48' : 'hidden lg:block lg:w-12'}`}
                 >
                     {sidebarItems.map((sidebarItem, index) => (
                         <li 

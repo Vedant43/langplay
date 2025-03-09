@@ -14,7 +14,7 @@ import UserApi from "../api/user"
 import { useDispatch } from 'react-redux'
 import { setUser } from "../Components/redux/features/authSlice"
 
-export const SignIn = () => {
+export const SignInPage = () => {
 
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
@@ -54,12 +54,13 @@ export const SignIn = () => {
         .then((response) => {
             setLoading(false)
 
+            const { username, id } = response
             let channelName = response.user.channelName
             let profilePicture = response.user.profilePicture
             
             if (!profilePicture) profilePicture = avatar
 
-            dispatch(setUser({profilePicture, channelName}))
+            dispatch(setUser({profilePicture, channelName, username, id}))
 
             localStorage.setItem('accessToken', response.accessToken)   
             navigate("/") 
@@ -89,65 +90,65 @@ export const SignIn = () => {
           className="z-10 w-full max-w-md"
         >
             <div 
-            className='flex items-center justify-center w-full lg:w-4/5 max-w-96 mx-auto p-8 bg-white rounded-lg shadow-2xl border border-gray-200'
-        >
-            <div 
-                className='flex flex-col'
+                className='flex items-center justify-center w-full lg:w-4/5 max-w-96 mx-auto p-8 bg-white rounded-lg shadow-2xl border border-gray-200'
             >
-                <h3 
-                    className='flex justify-center items-center text-primary mb-4'
+                <div 
+                    className='flex flex-col'
                 >
-                    Sign In
-                </h3>
-
-                {loading ? 
-                <Loader /> : 
-                <form 
-                    onSubmit={handleSubmit(onSubmit)}
-                >
-                    <InputField 
-                        label={"Username or email:"} 
-                        placeholder={"Enter your username or email"}
-                        icon={<PersonIcon sx={{ fontSize:18}}/>}
-                        type={"text"}
-                        id={"usernameOrEmail"}
-                        register={register}
-                        errors={errors}
-                    />      
-                    <InputField 
-                        label={"Password:"} 
-                        placeholder={"Enter your password"}
-                        icon={<HttpsIcon sx={{ fontSize:18}}/>}
-                        type={"password"}
-                        id={"password"}
-                        register={register}
-                        errors={errors}
-                    />
-                    <div 
-                        className='mt-4'
+                    <h3 
+                        className='flex justify-center items-center text-primary mb-4'
                     >
-                        <button
-                            className='w-full bg-primary hover:bg-h-primary text-white font-medium py-2 px-4 rounded-md shadow-sm transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 flex items-center justify-center'
-                            type='submit'
-                        >
-                            Sign In
-                        </button>
+                        Sign In
+                    </h3>
 
-                        {/* {errors.dbError && (
-                            <p className="text-red-400 pt-1 text-xs text-center">
-                                {errors.dbError.message}
+                    {loading ? 
+                    <Loader /> : 
+                    <form 
+                        onSubmit={handleSubmit(onSubmit)}
+                    >
+                        <InputField 
+                            label={"Username or email:"} 
+                            placeholder={"Enter your username or email"}
+                            icon={<PersonIcon sx={{ fontSize:18}}/>}
+                            type={"text"}
+                            id={"usernameOrEmail"}
+                            register={register}
+                            errors={errors}
+                        />      
+                        <InputField 
+                            label={"Password:"} 
+                            placeholder={"Enter your password"}
+                            icon={<HttpsIcon sx={{ fontSize:18}}/>}
+                            type={"password"}
+                            id={"password"}
+                            register={register}
+                            errors={errors}
+                        />
+                        <div 
+                            className='mt-4'
+                        >
+                            <button
+                                className='w-full bg-primary hover:bg-h-primary text-white font-medium py-2 px-4 rounded-md shadow-sm transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 flex items-center justify-center'
+                                type='submit'
+                            >
+                                Sign In
+                            </button>
+
+                            {/* {errors.dbError && (
+                                <p className="text-red-400 pt-1 text-xs text-center">
+                                    {errors.dbError.message}
+                                </p>
+                            )} */}
+
+                            <p 
+                                className='pt-2 flex'
+                            >
+                                Don't have an account? <Link to={"/signup"} className='nunderline'> Sign Up </Link> 
                             </p>
-                        )} */}
 
-                        <p 
-                            className='pt-2 flex'
-                        >
-                            Don't have an account? <Link to={"/signup"} className='nunderline'> Sign Up </Link> 
-                        </p>
-
-                    </div>
-                </form>}
-            </div>
+                        </div>
+                    </form>}
+                </div>
         </div>
       </div>
     </Container>

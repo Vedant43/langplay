@@ -202,7 +202,10 @@ export const likeVideo = async (req: Request, res: Response) => {
     const userId = (req as AuthRequest).userId
 
     const existingEngagement = await prisma.videoEngagement.findUnique({
-        where: { videoId_userId: { videoId, userId }}
+        where: { 
+            videoId_userId: { 
+                videoId, userId 
+            }}
     })
 
     if(existingEngagement){
@@ -219,7 +222,7 @@ export const likeVideo = async (req: Request, res: Response) => {
         } 
 
         // if video is disliked
-        await prisma.videoEngagement.update({
+        const videoEngagement = await prisma.videoEngagement.update({
             where: { 
                 videoId_userId: { 
                     videoId, 
@@ -230,10 +233,10 @@ export const likeVideo = async (req: Request, res: Response) => {
             },
         })
 
-        return new ApiResponse(200, "Liked", { liked: true, likeCount: await getLikeCount(videoId)}).send(res)
+        return new ApiResponse(200, "Liked", { videoEngagement, liked: true, likeCount: await getLikeCount(videoId)}).send(res)
     }
 
-    await prisma.videoEngagement.create({
+    const videoEngagement = await prisma.videoEngagement.create({
         data:{
             videoId, 
             userId,
@@ -241,7 +244,15 @@ export const likeVideo = async (req: Request, res: Response) => {
         }
     })
 
-    return new ApiResponse(200, "Liked", { liked: true, likeCount: await getLikeCount(videoId)}).send(res)
+    return new ApiResponse(
+        200, 
+        "Liked", 
+        { 
+            videoEngagement,
+            liked: true, 
+            likeCount: await getLikeCount(videoId)
+        })
+        .send(res)
 }
 
 export const dislikeVideo = async (req: Request, res: Response) => {

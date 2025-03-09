@@ -50,13 +50,13 @@ export const Layout = () => {
             >
             
                 <aside 
-                    className={`fixed lg: min-h-screen shadow-xl`}        
+                    className={`fixed lg: min-h-screen border border-solid border-r-1 border-zinc-300`}        
                 >
                     <Sidebar isSidebarOpen={isSidebarOpen}/>
                 </aside>
                 
                 <main
-                    className={`flex-1 ${isSidebarOpen ? "lg:ml-56 ml-52 " : "lg:ml-24"} transition-all duration-300 ease-in-out`}
+                    className={`flex-1 ${isSidebarOpen ? "lg:ml-56 ml-52 " : "lg:ml-20"} transition-all duration-300 ease-in-out`}
                 >
                     <Outlet />
                 </main>

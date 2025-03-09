@@ -5,12 +5,15 @@ import avatar from "../src/assets/default-avatar.jpg"
 import { Toaster } from 'react-hot-toast'
 import { Layout } from "./Components/layout/Layout"
 import { HomePage } from "./pages/HomePage.jsx"
-import { SignUp } from "./pages/SignUp.jsx"
-import { SignIn } from "./pages/SignIn.jsx"
+import { SignUpPage } from "./pages/SignUpPage.jsx"
+import { SignInPage } from "./pages/SignInPage.jsx"
 import { setUser } from "./Components/redux/features/authSlice.js"
 import UserApi from "../src/api/user.js"
-function App() {
+import { VideoPage } from "./pages/VideoPage.jsx"
+import ErrorBoundary from "./Components/ErrorBoundary.jsx"
+import { Playlist } from "./pages/Playlist.jsx"
 
+function App() {
   const dispatch = useDispatch()
 
   // useEffect(() => {
@@ -33,12 +36,14 @@ function App() {
         UserApi.fetchProfileInfo()
         .then((response) => {
 
+          const { username } = response
+          const id = Number(response.id)
+
           let channelName = response.channelName
           let profilePicture = response.profilePicture
 
           if (!profilePicture) profilePicture = avatar
-          dispatch(setUser({profilePicture, channelName}))
-
+          dispatch(setUser({profilePicture, channelName, username, id}))
         })
         .catch((error) => console.log(error))
       }
@@ -47,6 +52,7 @@ function App() {
 
   return (
     <div className="font-poppins">
+      <ErrorBoundary>
       <BrowserRouter>
         <Toaster
             position="bottom-center"
@@ -55,32 +61,34 @@ function App() {
             containerClassName=""
             containerStyle={{}}
             toastOptions={{
-              // Define default options
               className: '',
               duration: 5000,
               removeDelay: 1000,
-              style: {
-                background: '#363636',
-                color: '#fff',
-              },
+              // style: {
+              //   background: '#616494',
+              //   color: '#fff',
+              // },
 
-            success: {
-              duration: 3000,
-              iconTheme: {
-                primary: 'green',
-                secondary: 'black',
-              },
-            },
+            // success: {
+            //   duration: 3000,
+            //   iconTheme: {
+            //     primary: 'green',
+            //     secondary: 'black',
+            //   },
+            // },
             }}
         />
         <Routes>
           <Route element={<Layout />} >
             <Route path="/" element={<HomePage />} />
-            <Route path="/signup" element={<SignUp />}/>
-            <Route path="/signin" element={<SignIn />}/>
+            <Route path="/signup" element={<SignUpPage />}/>
+            <Route path="/signin" element={<SignInPage />}/>
+            <Route path="/video/:videoId" element={<VideoPage />} />
+            <Route path="/playlist" element={<Playlist />}/>
           </Route>
         </Routes>
       </BrowserRouter>
+      </ErrorBoundary>
     </div>
   )
 }
