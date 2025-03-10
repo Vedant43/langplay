@@ -165,9 +165,9 @@ export const VideoPage = () => {
     e.stopPropagation()
     setPlaylistModal(true)
 
-    PlaylistApi.fetchPlaylistByUser()
+    PlaylistApi.fetchPlaylistsByUser()
     .then( (response) => {
-      console.log("Playlists by user....")
+      
       console.log(response)
       setPlaylistData(Array.isArray(response) ? response : [])
 
@@ -180,6 +180,7 @@ export const VideoPage = () => {
       .catch( error => {
         console.log(error)
       })
+      
     })
     .catch( error => {
       console.log(error)

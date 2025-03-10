@@ -6,7 +6,7 @@ import ApiError from "../utils/ApiError"
 
 const prisma = new PrismaClient()
 
-export const getPlaylistsById = async (req: Request, res: Response) => {
+export const getPlaylistsByUserId = async (req: Request, res: Response) => {
     const { userId } = (req as AuthRequest)
 
     const playlists = await prisma.playlist.findMany({
@@ -15,6 +15,37 @@ export const getPlaylistsById = async (req: Request, res: Response) => {
         },
     })
     return new ApiResponse(200, "Fetched playlists successfully", playlists).send(res)
+}
+
+export const getPlaylistById = async (req: Request, res: Response) => {
+
+    const playlistId = parseInt(req.params.playlistId, 10)
+
+    if(isNaN(playlistId)){
+        throw new ApiError(400, "Invalid playlist Id")
+    }
+
+    const playlist = await prisma.playlist.findUnique({
+        where: { 
+            id: playlistId 
+        },
+        include: {
+            videos: {
+                include: {
+                    Video: true
+                }
+            }
+        }
+    })
+
+    if (!playlist) {
+        throw new ApiError(404, "Playlist not found");
+    }
+
+    return new ApiResponse(200, "Fetched Playlist successfully", {
+        count: playlist?.videos.length, 
+        playlist
+    }).send(res)
 }
 
 export const isVideoInPlaylist = async (req: Request, res: Response) => {

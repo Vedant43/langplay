@@ -81,10 +81,10 @@ function App() {
         <Routes>
           <Route element={<Layout />} >
             <Route path="/" element={<HomePage />} />
-            <Route path="/signup" element={<SignUpPage />}/>
-            <Route path="/signin" element={<SignInPage />}/>
+            <Route path="/signup" element={<SignUpPage />} />
+            <Route path="/signin" element={<SignInPage />} />
             <Route path="/video/:videoId" element={<VideoPage />} />
-            <Route path="/playlist" element={<Playlist />}/>
+            <Route path="/playlist/:playlistId" element={<Playlist />} />
           </Route>
         </Routes>
       </BrowserRouter>

@@ -7,7 +7,7 @@ export const authSlice = createSlice({
         profilePicture: null,
         channelName: '',
         username: '',
-        id:''
+        id:null
     },
     reducers: {
         setUser: (state,action) => {

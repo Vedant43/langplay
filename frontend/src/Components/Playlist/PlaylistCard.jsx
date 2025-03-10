@@ -1,6 +1,6 @@
 import React from 'react'
 
-export const PlaylistCard = () => {
+export const PlaylistCard = ( {name, count, time} ) => {
   return (
     <div
       className="relative cursor-pointer h-full w-full rounded-2xl overflow-hidden"
@@ -20,11 +20,11 @@ export const PlaylistCard = () => {
       >
         <div className="text-white flex justify-between">
           <div>  
-            <h2 className="text-xl font-semibold">Playlist</h2>
-            <p className="text-sm">18 hours ago</p>
+            <h2 className="text-xl font-semibold">{name}</h2>
+            <p className="text-sm">{time}</p>
           </div>
           <div>
-            <p className="text-sm">32 videos</p>
+            <p className="text-sm">{count} {count > 1 ? "videos" : "video"} </p>
           </div>
         </div>
       </div>

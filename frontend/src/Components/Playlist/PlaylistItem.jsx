@@ -1,6 +1,6 @@
 import React from 'react'
 
-export const PlaylistItem = () => {
+export const PlaylistItem = ( {id, title, views, channelName, createdAt, thumbnailUrl, videoUrl } ) => {
   return (
     <div 
         className='flex gap-3 border border-solid border-zinc-300 rounded-md'
@@ -9,7 +9,7 @@ export const PlaylistItem = () => {
         className='flex'
       >  
         <img 
-            src='https://images.unsplash.com/photo-1740857116465-99177c130dad?q=80&w=2039&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+            src={thumbnailUrl}
             className='object-cover rounded-md h-24 w-56'
         />
       </div>
@@ -20,7 +20,7 @@ export const PlaylistItem = () => {
         <div
             className='text-base'
         >
-            title
+            {title}
         </div>
 
         <div 
@@ -29,20 +29,20 @@ export const PlaylistItem = () => {
             <span 
                 className='text-gray-500'
             >
-                x views
+                {views} views
             </span>
             <span>
                 &#8226;
             </span>
             <span>
-                x years ago
+                {createdAt}
             </span>
         </div>
 
         <div
             className='text-sm'
         >
-            channel name
+            {channelName}
         </div>
       </div>
 
