@@ -29,10 +29,10 @@ export const generateRefreshToken = (payload: object) => {
 };
 
 export const verifyToken = (token: string) : TokenPayload => {
-  const decoded = jwt.verify(token, publicKey, { algorithms: ["RS256"] });
+    const decoded = jwt.verify(token, publicKey, { algorithms: ["RS256"] });
 
     if (typeof decoded !== "object" || decoded === null) {
-        throw new ApiError(403, "Invalid or expired token");
+        throw new ApiError(403, "Invalid or expired token")
     }
 
     return decoded as TokenPayload

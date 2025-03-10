@@ -4,7 +4,6 @@ import { verifyToken } from "../utils/tokenService";
 import { AuthRequest } from "../utils/types";
 
 export const authenticate : RequestHandler = (req: Request, res: Response, next: NextFunction) => {
-
     const authHeader = (req.headers as { authorization?: string }).authorization
 
     if(!authHeader || !authHeader.startsWith('Bearer')){
@@ -22,6 +21,7 @@ export const authenticate : RequestHandler = (req: Request, res: Response, next:
         (req as unknown as AuthRequest).username = decoded.username
         next()
     } catch (error) {
+        console.log(error)
         throw new ApiError(401, "Unauthorized!!")
     }
 }

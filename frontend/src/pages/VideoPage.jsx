@@ -66,6 +66,10 @@ export const VideoPage = () => {
   const { username, profilePicture, id } = useSelector((state) => state.auth)
   const { videoId } = useParams()
 
+  useEffect( () => {
+    console.log(selectedPlaylist)
+  }, [ selectedPlaylist ])
+
   useEffect(() => {
     VideoApi.fetchVideo(videoId)
     .then(data => {
@@ -163,13 +167,25 @@ export const VideoPage = () => {
 
     PlaylistApi.fetchPlaylistByUser()
     .then( (response) => {
+      console.log("Playlists by user....")
       console.log(response)
       setPlaylistData(Array.isArray(response) ? response : [])
+
+      const playlistsId = response.map((playlist) => playlist.id)
+
+      PlaylistApi.isVideoInPlaylist(playlistsId, videoId)
+      .then( response => {
+        setSelectedPlaylist(response)
+      })
+      .catch( error => {
+        console.log(error)
+      })
     })
     .catch( error => {
       console.log(error)
       setPlaylistData([])
     })
+
   }
 
   const createPlaylist = () => {
@@ -394,7 +410,7 @@ export const VideoPage = () => {
                               <input 
                                 id={index}
                                 type='checkbox'
-                                checked={selectedPlaylist.includes(playlist.id)}
+                                checked={selectedPlaylist?.includes(playlist.id)}
                                 onChange={ () => {
                                   handleCheckedState(playlist.id, videoData.id)
                                 }}

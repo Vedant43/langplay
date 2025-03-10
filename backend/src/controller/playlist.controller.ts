@@ -17,6 +17,29 @@ export const getPlaylistsById = async (req: Request, res: Response) => {
     return new ApiResponse(200, "Fetched playlists successfully", playlists).send(res)
 }
 
+export const isVideoInPlaylist = async (req: Request, res: Response) => {
+    console.log("body.....")
+    console.log(req.body.videoId)
+    const { playlistId } = req.body
+    const videoId = parseInt(req.body.videoId)
+    console.log("video id...............")
+    console.log(videoId)
+    
+    console.log("playlist id............")
+    console.log(playlistId)
+    // playlistId is array
+    const isVideoInPlaylist = await prisma.playlist_videos.findMany({
+        where:{
+            videoId,
+            playlistId: {
+                in: playlistId
+            }
+        }
+    })
+    const videoInPlaylistByUser = isVideoInPlaylist.map( (playlist) => playlist.playlistId)
+    return new ApiResponse(200, "Checked if video is in playlist!!", videoInPlaylistByUser).send(res)
+}
+
 export const createPlaylist = async (req: Request, res: Response) => {
     const { name } = req.body
     const userId = (req as AuthRequest).userId
@@ -43,9 +66,7 @@ export const createPlaylist = async (req: Request, res: Response) => {
 }
 
 export const saveVideoToPlaylist = async (req: Request, res: Response) => {
-    // const { videoId, playlistId } = req.body
-    console.log("req.body")
-    console.log(req.body)
+    
     const videoId = parseInt(req.body.videoId, 10)
     const playlistId = parseInt(req.body.playlistId, 10)
 
