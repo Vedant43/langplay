@@ -233,6 +233,50 @@ export const getuserById = async (req: Request, res: Response) => {
   return new ApiResponse(200, "User fetched successfully", user).send(res)
 }
 
+export const subscribeToChannel = async (req: Request, res: Response) => {
+  const userId = (req as AuthRequest).userId
+  const channelId = parseInt(req.body.channelId, 10)
+
+  if (isNaN(channelId)) {
+    return new ApiResponse(400, "Invalid channel ID").send(res);
+  }
+
+  if (userId === channelId) {
+    return new ApiResponse(400, "You cannot subscribe to yourself").send(res);
+  }
+
+  const isAlreadySubscribed = await prisma.channelEngagement.findUnique({
+      where:{
+          channelId_subscriberId: {
+              channelId,
+              subscriberId: userId
+          }
+      }
+  })
+
+  if(isAlreadySubscribed) {
+      await prisma.channelEngagement.delete({
+          where:{
+              channelId_subscriberId: {
+                  channelId,
+                  subscriberId: userId
+              }
+          }
+      })
+
+      return new ApiResponse(200, "Unsubscribed!!").send(res)
+  }
+
+  await prisma.channelEngagement.create({
+      data:{
+          channelId,
+          subscriberId: userId
+      }
+  })
+
+  return new ApiResponse(200, "Subscribed to user").send(res)
+}
+
 export const refresh = (req: Request, res: Response) => {
 
   const refreshToken = req.cookies.refreshToken;

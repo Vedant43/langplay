@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import VideoApi from '../api/VideoApi'
 import toast from "react-hot-toast"
 import { useParams } from 'react-router-dom'
@@ -11,10 +11,12 @@ import ThumbDownOffAltIcon from '@mui/icons-material/ThumbDownOffAlt'
 import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd'
 import { Container } from '../Components/container/Container'
 import { VideoCard } from '../Components/Video Card/VideoCard'
-import { useSelector } from 'react-redux'
+import { addVideoToPlaylist, createPlaylist, removeVideoFromPlaylist, fetchPlaylistsIfNeeded } from '../Components/redux/features/playlistSlice'
+import { useDispatch, useSelector } from 'react-redux'
 import { VideoListCard } from '../Components/Video Card/VideoListCard'
 import { formatTime } from '../utils/daysAgoConvertor'
 import PlaylistApi from '../api/PlaylistApi'
+import UserApi from '../api/user'
 
 export const VideoPage = () => {
 
@@ -24,11 +26,9 @@ export const VideoPage = () => {
   const [ isLoading, setIsLoading ] = useState(false)
   const [ isLiked, setIsLiked ] = useState(false)
   const [ isDisliked, setIsDisliked ] = useState(false)
-  const [ subscribed, setIsSubscribed ] = useState(false) // needed for profile page of video creator
   const [ countLikes, setCountLikes ] = useState(0)
   const [ countDislikes, setCountDislikes] = useState(0)
-  const [ selectedPlaylist, setSelectedPlaylist ] = useState([])
-  const [ playlistData, setPlaylistData ] = useState([])
+  const [ playlistToAddVideo, setPlaylistToAddVideo ] = useState([])
   const [ videoData, setVideoData ] = useState({
     id:null,
     title: '',
@@ -62,19 +62,25 @@ export const VideoPage = () => {
     isPublished: '',
     videoPublicId: ''
   })
-
+  const [ isSubscribed, setIsSubscribed ] = useState(false) 
+  const [ subscriberCount, setSubscriberCount ] = useState(0)
+  const dispatch = useDispatch()
   const { username, profilePicture, id } = useSelector((state) => state.auth)
+  const { playlists, status, error, removeVideoStatus } = useSelector(state => state.playlist)
   const { videoId } = useParams()
-
-  useEffect( () => {
-    console.log(selectedPlaylist)
-  }, [ selectedPlaylist ])
 
   useEffect(() => {
     VideoApi.fetchVideo(videoId)
     .then(data => {
       setVideoData(data)
+      console.log("Video data --------------------------------")
       console.log(data)
+
+      const hasUserSubscribed = data.user?.subscribers?.find( (s) => s.subscriberId)
+
+      if(hasUserSubscribed) setIsSubscribed(true)
+      setSubscriberCount(data.user?.subscribers.length)
+      
         // const time = formatTime(data.createdAt)
         // console.log(data.videoEngagement)
 
@@ -161,70 +167,85 @@ export const VideoPage = () => {
     })
   }
 
-  const openPlaylistModal = (e) => {
+  const openPlaylistModal = async (e) => {
+    
     e.stopPropagation()
     setPlaylistModal(true)
+    try {
+        await dispatch(fetchPlaylistsIfNeeded()).unwrap()
 
-    PlaylistApi.fetchPlaylistsByUser()
-    .then( (response) => {
-      
-      console.log(response)
-      setPlaylistData(Array.isArray(response) ? response : [])
+        const playlistsId = playlists.map(p => p.id)
 
-      const playlistsId = response.map((playlist) => playlist.id)
+        const response = await PlaylistApi.isVideoInPlaylist(playlistsId, videoId)
 
-      PlaylistApi.isVideoInPlaylist(playlistsId, videoId)
-      .then( response => {
-        setSelectedPlaylist(response)
-      })
-      .catch( error => {
+        setPlaylistToAddVideo(response)
+    } catch (error) {
         console.log(error)
+    }
+}
+// const openPlaylistModal = useCallback(async (e) => {
+//   console.log("openPlaylistModal function triggered");
+//   e.stopPropagation();
+//   setPlaylistModal(true);
+
+//   try {
+//       await dispatch(fetchPlaylistsIfNeeded()).unwrap();
+
+//       const playlistsId = playlists.map((p) => p.id);
+//       console.log("1........All Playlist id ---------", playlistsId);
+
+//       const response = await PlaylistApi.isVideoInPlaylist(playlistsId, videoId);
+//       console.log("2-----------Is video in playlist-----------------");
+//       console.log(response);
+
+//       setPlaylistToAddVideo(response);
+//   } catch (error) {
+//       console.log(error);
+//   }
+// }, []);
+
+  const createNewPlaylist = () => {
+    dispatch(createPlaylist(playlistName))
+    setPlaylistName('')
+  }
+
+  const handleCheckedState = async ( playlistId, videoId ) => {
+    try {
+      if(playlistToAddVideo.includes(playlistId)){
+        await dispatch(removeVideoFromPlaylist( {playlistId, videoId} )).unwrap()
+
+        setPlaylistToAddVideo(prevSelected => 
+          prevSelected.filter(id => id !== playlistId)
+        )
+      }else {
+
+        await dispatch(addVideoToPlaylist({ playlistId, videoId })).unwrap()
+
+        setPlaylistToAddVideo(prevSelected => [...prevSelected, playlistId])
+      }
+    } catch (error) {
+      console.log(error)
+    } 
+  }
+
+  const handleSubscribe = (channelId) => {
+    console.log(channelId)
+    UserApi.subscribe(channelId)
+    .then( response => {
+      setSubscriberCount( (prev) => {
+        if(isSubscribed){
+          setIsSubscribed(false)
+          return prev - 1
+        } else{
+          setIsSubscribed(true)
+          return prev + 1
+        }
       })
-      
     })
     .catch( error => {
-      console.log(error)
-      setPlaylistData([])
-    })
 
-  }
-
-  const createPlaylist = () => {
-    // setIsLoading(true)
-    PlaylistApi.createPlaylist(playlistName)
-    .then( (response) => {
-      setPlaylistData( (prevData) => {
-        return Array.isArray(prevData) ? [...prevData, response] : [response]
-      })
-      setIsLoading(false)
-      setPlaylistName('')
-      // setPlaylistModal(false)
-    })
-    .catch( (error) => {
       console.log(error)
     })
-  }
-
-  const handleCheckedState = ( playlistId, videoId ) => {
-
-    PlaylistApi.addVideoToPlaylist(playlistId, videoId)
-    .then(response => {
-      console.log(response)
-    })
-    .catch(error => {
-      console.log(error)
-    })
-
-    setSelectedPlaylist( (prevSelected) => {
-
-      if(prevSelected.includes(playlistId)){
-        return prevSelected.filter( (id) => id !== playlistId)
-      } else {
-        return [...prevSelected, playlistId]
-      }
-
-    })
-
   }
 
   const videoDataList = [
@@ -349,16 +370,18 @@ export const VideoPage = () => {
 
               <div 
                 className='flex justify-center items-center text-sm gap-1 lg:border-solid lg:border lg:border-zinc-200 rounded cursor-pointer p-2' 
-                onClick={openPlaylistModal}
               >
-
-                <PlaylistAddIcon />
-                <span 
-                  className='text-gray-2'
+                <div
+                onClick={(e) => openPlaylistModal(e)} // Move onClick here
+                className='flex items-center gap-1'
                 >
-                  Save
-                </span>
-
+                  <PlaylistAddIcon />
+                  <span 
+                    className='text-gray-2'
+                  >
+                    Save
+                  </span>
+                </div>
                 {/* add scrolling */}
                 {playlistModal &&
                   <div
@@ -370,7 +393,6 @@ export const VideoPage = () => {
                       onClick={(e) => {
                         e.stopPropagation()
                         setPlaylistModal(false)
-                        console.log("Overlay clicked")
                       }}
                     >
                     </div>
@@ -403,7 +425,7 @@ export const VideoPage = () => {
 
                         <div className='pt-2'>
 
-                          {playlistData.length > 0 ? playlistData.map( (playlist, index) => (
+                          {playlists.length > 0 ? playlists.map( (playlist, index) => (
                             <div 
                               key={index}
                               className='flex gap-3'
@@ -411,7 +433,7 @@ export const VideoPage = () => {
                               <input 
                                 id={index}
                                 type='checkbox'
-                                checked={selectedPlaylist?.includes(playlist.id)}
+                                checked={playlistToAddVideo?.includes(playlist.id)}
                                 onChange={ () => {
                                   handleCheckedState(playlist.id, videoData.id)
                                 }}
@@ -435,7 +457,7 @@ export const VideoPage = () => {
                             />
                             {/* {isLoading ? <PulseLoader /> :  */}
                             <button 
-                              onClick={() => createPlaylist()} 
+                              onClick={() => createNewPlaylist()} 
                               className="bg-primary hover:bg-h-primary h-10 outline-none text-white cursor-pointer font-semibold py-2 px-4 rounded-md transition duration-200 shadow-md"
                             > 
                               Create New Playlist
@@ -480,30 +502,37 @@ export const VideoPage = () => {
               <div>  
                 <img 
                   className="w-12 h-12 rounded-full" 
-                  src={videoData.user.profilePicture || null}
+                  src={videoData.user.profilePicture || profilePicture}
                   alt='profile picture'  
                 />
               </div>
               <div className='flex flex-col gap-'>
                 <div className='font-semibold text-sm'>
-                  {/* {videoData.user.channelName}*/}
-                  channel name
+                  {videoData.user.username}
                 </div>
                 {/* handle subscriber */}
                 <div 
                   className='text-gray-2 text-sm'
                 >
-                  {videoData.user.id} subscribers
+                  {subscriberCount} subscriber{subscriberCount>1 ? 's' : ''} 
                 </div> 
               </div>
             </div>
 
-            <div 
-              className='flex items-center justify-center text-white bg-primary gap-2 w-32 lg:border-solid lg:border lg:border-zinc-200 h-12 rounded-full p-1'
+            <div
+              className={`flex items-center justify-center gap-2 w-32 cursor-pointer lg:border-solid lg:border h-12 rounded-full p-1 transition-all duration-300 ${
+              isSubscribed
+                ? "text-slate-800 bg-white lg:border-zinc-400 hover:bg-gray-100 hover:scale-105"
+                : "text-white bg-primary lg:border-zinc-200 hover:bg-primary-dark hover:scale-105"
+              }`}
+              onClick={() => handleSubscribe(videoData.user.id)}
             >
               <GroupAddIcon />
-              <span className='text-sm text-white'>Subscribe</span>
+              <span className={`text-sm ${isSubscribed ? "text-slate-800" : "text-white"}`}>
+                {isSubscribed ? "Unsubscribe" : "Subscribe"}
+              </span>
             </div>
+                        
           </div>
 
         </div>        
@@ -587,7 +616,7 @@ export const VideoPage = () => {
       </div>
 
       {/* right section - video listing */}
-      <div className='lg:col-span-2'>
+      {/* <div className='lg:col-span-2'>
 
         {videoDataList.map((videoData, index) => (
           <VideoListCard 
@@ -601,7 +630,7 @@ export const VideoPage = () => {
             createdAt={videoData.createdAt}
           />
       ))}
-      </div>
+      </div> */}
     </Container>
   )
 }

@@ -5,6 +5,7 @@ import { validate } from "../middleware/validator.middleware";
 import { setupProfileSchema, signInSchema, signUpSchema } from "../validators/zod.schema";
 import { uploadProfileCover } from "../middleware/multer.middleware";
 import { authenticate } from "../middleware/auth.middleware";
+import { subscribeToChannel } from "../controller/auth.controller";
 
 const router = express.Router();
 
@@ -17,6 +18,8 @@ router.post("/signin",validate(signInSchema), asyncHandler(signIn))
 router.get("/profile-info", authenticate, asyncHandler(getProfilePicAndChannelNameStatus))
 
 router.get("/user", authenticate, asyncHandler(getuserById))
+
+router.post("/subscribe", authenticate, asyncHandler(subscribeToChannel))
 
 // we can create a video tag by cloudinary.video("public_id")
 // cloudinary.url("public_id", {type:"fetch"}) => for auto updation of image we are using remote source

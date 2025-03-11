@@ -15,4 +15,14 @@ const userSignUp = async (data) => {
     return response.data.data
 }
 
-export default { fetchProfileInfo, userSignIn, userSignUp }
+const subscribe = async (channelId) => {
+    const response = await apiClient.post("user/subscribe", {channelId})
+    return response
+}
+
+export default { 
+    fetchProfileInfo, 
+    userSignIn, 
+    userSignUp,
+    subscribe 
+}

@@ -49,15 +49,9 @@ export const getPlaylistById = async (req: Request, res: Response) => {
 }
 
 export const isVideoInPlaylist = async (req: Request, res: Response) => {
-    console.log("body.....")
-    console.log(req.body.videoId)
     const { playlistId } = req.body
     const videoId = parseInt(req.body.videoId)
-    console.log("video id...............")
-    console.log(videoId)
     
-    console.log("playlist id............")
-    console.log(playlistId)
     // playlistId is array
     const isVideoInPlaylist = await prisma.playlist_videos.findMany({
         where:{
@@ -68,6 +62,7 @@ export const isVideoInPlaylist = async (req: Request, res: Response) => {
         }
     })
     const videoInPlaylistByUser = isVideoInPlaylist.map( (playlist) => playlist.playlistId)
+
     return new ApiResponse(200, "Checked if video is in playlist!!", videoInPlaylistByUser).send(res)
 }
 
@@ -97,7 +92,6 @@ export const createPlaylist = async (req: Request, res: Response) => {
 }
 
 export const saveVideoToPlaylist = async (req: Request, res: Response) => {
-    
     const videoId = parseInt(req.body.videoId, 10)
     const playlistId = parseInt(req.body.playlistId, 10)
 
@@ -117,7 +111,8 @@ export const saveVideoToPlaylist = async (req: Request, res: Response) => {
                 }
             }
         })
-        return new ApiResponse(200, "Video removed from the playlist")
+
+        return new ApiResponse(200, "Video removed from the playlist").send(res)
     }
 
     await prisma.playlist_videos.create({
@@ -126,7 +121,6 @@ export const saveVideoToPlaylist = async (req: Request, res: Response) => {
             playlistId
         }
     })
-
     return new ApiResponse(200, "Video added to playlist").send(res)
 }
 

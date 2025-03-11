@@ -18,8 +18,8 @@ model User {
   profilePicture     String?
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
-  subscribers        ChannelEngagement[] @relation("channel")
-  subscribedTo       ChannelEngagement[] @relation("subscriber")
+  subscribers        ChannelEngagement[] @relation("subscribers")
+  subscribedTo       ChannelEngagement[] @relation("subscriptions")
   comments           Comment[]
   commentEngagements CommentEngagement[]
   community          Community[]
@@ -43,7 +43,7 @@ model Video {
   videoPublicId   String
   comments        Comment[]
   Playlist_videos Playlist_videos[]
-  user            User              @relation(fields: [userId], references: [id])
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   videoEngagement VideoEngagement[]
 }
 
@@ -51,8 +51,8 @@ model VideoEngagement {
   videoId        Int
   userId         Int
   engagementType Engagement
-  user           User       @relation(fields: [userId], references: [id])
-  video          Video      @relation(fields: [videoId], references: [id])
+  user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  video          Video      @relation(fields: [videoId], references: [id], onDelete: Cascade)
 
   @@unique([videoId, userId])
 }
@@ -63,15 +63,15 @@ model Playlist {
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
   userId    Int
-  user      User              @relation(fields: [userId], references: [id])
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   videos    Playlist_videos[]
 }
 
 model Playlist_videos {
   videoId   Int
   playlistId Int
-  playlist   Playlist @relation(fields: [playlistId], references: [id])
-  Video      Video    @relation(fields: [videoId], references: [id])
+  playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  Video      Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
 
   @@unique([playlistId, videoId])
 }
@@ -84,15 +84,15 @@ model Community {
   image          String?
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
-  user           User             @relation(fields: [userId], references: [id])
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   communityLikes CommunityLikes[]
 }
 
 model CommunityLikes {
   communityId Int
   userId      Int
-  community   Community @relation(fields: [communityId], references: [id])
-  user        User      @relation(fields: [userId], references: [id])
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([communityId, userId])
 }
@@ -103,16 +103,16 @@ model Comment {
   createdAt  DateTime            @default(now())
   videoId    Int
   userId     Int
-  user       User                @relation(fields: [userId], references: [id])
-  video      Video               @relation(fields: [videoId], references: [id])
+  user       User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  video      Video               @relation(fields: [videoId], references: [id], onDelete: Cascade)
   engagement CommentEngagement[]
 }
 
 model CommentEngagement {
   commentId Int
   userId    Int
-  comment   Comment @relation(fields: [commentId], references: [id])
-  user      User    @relation(fields: [userId], references: [id])
+  comment   Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([commentId, userId])
 }
@@ -121,8 +121,8 @@ model ChannelEngagement {
   channelId    Int
   subscriberId Int
   createdAt    DateTime @default(now())
-  channel      User     @relation("channel", fields: [channelId], references: [id])
-  subscriber   User     @relation("subscriber", fields: [subscriberId], references: [id])
+  channel      User     @relation("subscribers", fields: [channelId], references: [id], onDelete: Cascade)
+  subscriber   User     @relation("subscriptions", fields: [subscriberId], references: [id], onDelete: Cascade)
 
   @@unique([channelId, subscriberId])
 }

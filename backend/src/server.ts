@@ -16,6 +16,7 @@ dotenv.config()
 app.use("/api/v1/user", userRouter)
 app.use("/api/v1/video", videoRouter)
 app.use("/api/v1/playlist", playlistRouter)
+// app.use("api/v1/channel-engagement")
 
 app.use(errorHandler)
 

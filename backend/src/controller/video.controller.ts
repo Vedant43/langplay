@@ -72,7 +72,8 @@ export const getVideoById = async (req: Request, res: Response) => {
                     id: true,
                     username: true,
                     profilePicture:true,
-                    // include subscribers
+                    subscribers:true,
+                    subscribedTo:true
                 }
             },
             comments: {
@@ -90,10 +91,10 @@ export const getVideoById = async (req: Request, res: Response) => {
                 }
             },
             videoEngagement: true,
-        }
+        },
     })
 
-    if(!video) throw new ApiError(404, "Video not found")
+    if (!video) throw new ApiError(404, "Video not found")
 
     return new ApiResponse(200, "Video fetched successfully", video).send(res)
 }

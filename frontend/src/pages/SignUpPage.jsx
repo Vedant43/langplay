@@ -15,6 +15,7 @@ import HttpsIcon from '@mui/icons-material/Https'
 import UserApi from "../api/user"
 import { setUser } from '../Components/redux/features/authSlice'
 import { useDispatch } from 'react-redux'
+import { fetchPlaylistsIfNeeded } from '../Components/redux/features/playlistSlice'
 
 export const SignUpPage = () => {
 
@@ -56,7 +57,7 @@ export const SignUpPage = () => {
 
           if (!profilePicture) profilePicture = avatar
           dispatch(setUser({profilePicture, channelName, username, id }))
-
+          dispatch(fetchPlaylistsIfNeeded())
           localStorage.setItem('accessToken', response.accessToken)   
           navigate("/") 
       })

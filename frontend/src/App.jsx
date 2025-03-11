@@ -1,6 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom"
 import { useEffect } from "react"
-import { useDispatch } from "react-redux"
+import { useDispatch, useSelector } from "react-redux"
 import avatar from "../src/assets/default-avatar.jpg"
 import { Toaster } from 'react-hot-toast'
 import { Layout } from "./Components/layout/Layout"
@@ -8,26 +8,19 @@ import { HomePage } from "./pages/HomePage.jsx"
 import { SignUpPage } from "./pages/SignUpPage.jsx"
 import { SignInPage } from "./pages/SignInPage.jsx"
 import { setUser } from "./Components/redux/features/authSlice.js"
+import { fetchPlaylistsIfNeeded } from "./Components/redux/features/playlistSlice.js"
 import UserApi from "../src/api/user.js"
 import { VideoPage } from "./pages/VideoPage.jsx"
 import ErrorBoundary from "./Components/ErrorBoundary.jsx"
 import { Playlist } from "./pages/Playlist.jsx"
 
 function App() {
+
   const dispatch = useDispatch()
-
-  // useEffect(() => {
-  //   async function fetchProfileInfo() {
-  //     const accessToken = localStorage.getItem("accessToken")
-  //     if (accessToken) {
-  //         const response = await axios.get("http://localhost:3000/api/v1/user/profile-info", {headers: { Authorization: `Bearer ${accessToken}` }},)
-  //         console.log(response.data.data)
-  //         dispatch(setUser(response.data.data))
-  //     }
-  //   } 
-  //   fetchProfileInfo()
-  //   }, [])
-
+  const { authStatus } = useSelector(state => state.auth)
+  const { playlistsLoaded } = useSelector(state => state.playlist)
+  const { playlists } = useSelector(state => state.playlist)
+  
   useEffect( () => {
       const accessToken = localStorage.getItem("accessToken")
 
@@ -44,11 +37,19 @@ function App() {
 
           if (!profilePicture) profilePicture = avatar
           dispatch(setUser({profilePicture, channelName, username, id}))
+          
         })
         .catch((error) => console.log(error))
       }
-  
   }, [])
+
+  useEffect(() => {
+    if (authStatus && !playlistsLoaded) {
+      dispatch(fetchPlaylistsIfNeeded())
+    }
+  }, [authStatus, playlistsLoaded, dispatch])
+
+  // can add logout here
 
   return (
     <div className="font-poppins">
