@@ -60,6 +60,7 @@ model VideoEngagement {
 model Playlist {
   id        Int               @id @default(autoincrement())
   name      String
+  type      PlaylistType?     @default(USER_CREATED)
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
   userId    Int
@@ -130,6 +131,13 @@ model ChannelEngagement {
 enum Engagement {
   LIKE
   DISLIKE
+}
+
+enum PlaylistType {
+  LIKED
+  WATCH_LATER
+  HISTORY
+  USER_CREATED 
 }
 
 // npx prisma db push to update schema

@@ -3,9 +3,9 @@ import PlaylistApi from "../../../api/PlaylistApi";
 
 export const createPlaylist = createAsyncThunk(
     "playlists/createPlaylist",
-    async (playlistName, { dispatch, rejectWithValue }) => {
+    async ({ playlistName, type='USER_CREATED' }, { dispatch, rejectWithValue }) => {
         try {
-            const response = await PlaylistApi.createPlaylist( playlistName )
+            const response = await PlaylistApi.createPlaylist( playlistName, type )
             await dispatch(refreshPlaylists()).unwrap()
             return response
         } catch (error) {
