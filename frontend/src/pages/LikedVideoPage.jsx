@@ -7,9 +7,7 @@ export const LikedVideoPage = () => {
     const { playlists, playlistsLoaded  } = useSelector(state => state.playlist)
   
     useEffect(() => { 
-  
-      if (!playlistsLoaded) return 
-  
+      if (!playlistsLoaded) return
       const doWatchLaterPlaylistExists = playlists.find(p => p.type === 'LIKED_VIDEO')
       if (doHistoryPlaylistExists) {
         dispatch(setSelectedPlaylist(doWatchLaterPlaylistExists))

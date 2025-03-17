@@ -189,7 +189,8 @@ export const getAllVideos = async (req: Request, res: Response) => {
                 select: {
                     id: true,
                     username: true,
-                    profilePicture: true
+                    profilePicture: true,
+                    channelName: true
                 }
             }
         }

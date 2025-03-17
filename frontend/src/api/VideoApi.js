@@ -1,7 +1,9 @@
 import { apiClient } from "./client"
-// router.post("/:id/like", authenticate, asyncHandler(likeVideo))
 
-// router.post("/:id/dislike", authenticate, asyncHandler(dislikeVideo))
+const fetchAllVideos = async () => {
+    const response = await apiClient.get("/video/")
+    return response.data.data
+}
 
 const fetchVideo = async ( videoId ) => {
     const response = await apiClient.get(`/video/${videoId}`)
@@ -23,4 +25,10 @@ const dislikeVideo = async ( videoId ) => {
     return response.data.data
 }
 
-export default { fetchVideo, postComment, likeVideo, dislikeVideo } 
+export default { 
+    fetchVideo, 
+    postComment, 
+    likeVideo, 
+    dislikeVideo, 
+    fetchAllVideos
+} 

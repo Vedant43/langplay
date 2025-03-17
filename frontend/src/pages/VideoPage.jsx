@@ -17,10 +17,12 @@ import { VideoListCard } from '../Components/Video Card/VideoListCard'
 import { formatTime } from '../utils/daysAgoConvertor'
 import PlaylistApi from '../api/PlaylistApi'
 import UserApi from '../api/user'
+import avatar from "../assets/default-avatar.jpg"
 
 export const VideoPage = () => {
 
   const [ content, setContent ] = useState('')
+  const [ countComment, setCountComment] = useState(0)
   const [ playlistModal, setPlaylistModal ] = useState(false)
   const [ playlistName, setPlaylistName ] = useState('')
   const [ isLoading, setIsLoading ] = useState(false)
@@ -68,43 +70,44 @@ export const VideoPage = () => {
   const { username, profilePicture, id } = useSelector((state) => state.auth)
   const { playlists, status, error, removeVideoStatus } = useSelector(state => state.playlist)
   const { videoId } = useParams()
-
+  
+        // const time = formatTime(data.createdAt)
+        // console.log(data.videoEngagement)
+        // console.log("videoData.comments.comment", videoData.comments.user.profilePicture)
   useEffect(() => {
     VideoApi.fetchVideo(videoId)
     .then(data => {
       setVideoData(data)
-      console.log("Video data --------------------------------")
-      console.log(data)
 
-      const hasUserSubscribed = data.user?.subscribers?.find( (s) => s.subscriberId)
+      const likes = data.videoEngagement?.filter((e) => e.engagementType === 'LIKE').length || 0
+      const dislikes = data.videoEngagement?.filter((e) => e.engagementType === 'DISLIKE').length || 0
+      const comments = data.comments?.length || 0
 
-      if(hasUserSubscribed) setIsSubscribed(true)
+      setCountLikes(likes)
+      setCountDislikes(dislikes)
+      setCountComment(comments)
+
+      if (id) {
+
+        const hasUserSubscribed = data.user?.subscribers?.find( (s) => s.subscriberId )
+        if(hasUserSubscribed) setIsSubscribed(true)
+
+        const likeStatus = data.videoEngagement?.find(
+          (e) => Number(e.userId) == Number(id) && e.engagementType === 'LIKE'
+        )
+
+        const disLikeStatus = data.videoEngagement?.find(
+          (e) => Number(e.userId) == Number(id) && e.engagementType === 'DISLIKE'
+        )
+
+        likeStatus ? setIsLiked(true) : setIsLiked(false)
+        disLikeStatus ? setIsDisliked(true) : setIsDisliked(false)
+      }
+
       setSubscriberCount(data.user?.subscribers.length)
-      
-        // const time = formatTime(data.createdAt)
-        // console.log(data.videoEngagement)
-
-        // const likes = data.videoEngagement?.filter(
-        //     (e) => e.engagementType === 'LIKE'
-        //   ).length || 0
-
-        // const dislikes = data.videoEngagement?.filter(
-        //     (e) => e.engagementType === 'DISLIKE'
-        //   ).length || 0
-
-        // console.log(data.videoEngagement)
-        // const likeStatus = data.videoEngagement?.find(
-        //   (e) => Number(e.userId) == Number(id) && e.engagementType === 'LIKE'
-        // )
-
-        // likeStatus ? setIsDisliked(true) : setIsLiked(false)
-        // console.log(isLiked)
-        // setVideoData(data)
-        // // setIsLiked(likeStatus ? isLiked : false)
-        // setCountLikes(likes)
-        // setCountDislikes(dislikes)
     })
-  }, [ videoId ])  
+
+  }, [ videoId, id ])  
 
   const handleCommentPost = () => {
 
@@ -136,34 +139,39 @@ export const VideoPage = () => {
       }))
       setContent('')
       setIsLoading(false)
+      setCountComment(prev => prev+1)
     })
     .catch((error) => console.log(error))
 
   }
 
-  const handleLike = (e) => {
+  const handleLikeDislike = (e) => {
     const id  = e.currentTarget.id
     
     const apiCall = (id === "like") ? ( VideoApi.likeVideo(videoId) ) : ( VideoApi.dislikeVideo(videoId) )
 
     apiCall.then((response) => {
+      console.log(response)
       if (id === "like") {
 
-        // if ( isDisliked ) {
-        //   setIsDisliked(response.disliked)
-        //   setCountDislikes(response.dislikeCount)
-        // }
+        if ( isDisliked ) {
+          setIsDisliked(response.disliked)
+          setCountDislikes(prev => prev-1)
+        }
         setIsLiked(response.liked)
         setCountLikes(response.likeCount)
+
       } else {
 
-        // if ( isLiked ) {
-        //   setIsLiked(response.isLiked)
-        //   setCountLikes(response.likeCount)
-        // }
+        if ( isLiked ) {
+          setIsLiked(response.isLiked)
+          setCountLikes(prev => prev-1)
+        }
         setIsDisliked(response.disliked)
         setCountDislikes(response.dislikeCount)
       }
+
+      // console.log(videoData.videoEngagement)
     })
   }
 
@@ -183,26 +191,6 @@ export const VideoPage = () => {
         console.log(error)
     }
 }
-// const openPlaylistModal = useCallback(async (e) => {
-//   console.log("openPlaylistModal function triggered");
-//   e.stopPropagation();
-//   setPlaylistModal(true);
-
-//   try {
-//       await dispatch(fetchPlaylistsIfNeeded()).unwrap();
-
-//       const playlistsId = playlists.map((p) => p.id);
-//       console.log("1........All Playlist id ---------", playlistsId);
-
-//       const response = await PlaylistApi.isVideoInPlaylist(playlistsId, videoId);
-//       console.log("2-----------Is video in playlist-----------------");
-//       console.log(response);
-
-//       setPlaylistToAddVideo(response);
-//   } catch (error) {
-//       console.log(error);
-//   }
-// }, []);
 
   const createNewPlaylist = () => {
     dispatch(createPlaylist(playlistName))
@@ -340,7 +328,7 @@ export const VideoPage = () => {
                   <div 
                     className='cursor-pointer'
                     id={"like"}
-                    onClick={handleLike}    
+                    onClick={handleLikeDislike}    
                   >
                     {isLiked ? <ThumbUpIcon /> : <ThumbUpOffAltIcon />}
                   </div>
@@ -356,7 +344,7 @@ export const VideoPage = () => {
                   <div
                     className='cursor-pointer'
                     id={"dislike"}
-                    onClick={handleLike}
+                    onClick={handleLikeDislike}
                   >
                     {isDisliked ? <ThumbDownIcon /> : <ThumbDownOffAltIcon />}
                   </div>
@@ -537,13 +525,12 @@ export const VideoPage = () => {
 
         </div>        
 
-        {/* comments border title comments and count */}
         <div 
           className='p-2 mt-6 border-solid border border-zinc-200 rounded-lg'
         >
 
           <h3>
-            Comments count number
+            Comments {countComment}
           </h3>
 
           {/* add comment section */}
@@ -581,7 +568,7 @@ export const VideoPage = () => {
                 
                 <div>
                   <img 
-                    src={comment.user.profilePicture || null}
+                    src={comment.user.profilePicture ?? avatar}
                     className='w-12 h-12 object-cover rounded-full'
                     alt="Profile picture"  
                   />

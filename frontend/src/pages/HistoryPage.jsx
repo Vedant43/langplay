@@ -1,12 +1,12 @@
 import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { createPlaylist, setSelectedPlaylist } from '../Components/redux/features/playlistSlice'
-// import
+import { Playlist } from '../Components/Playlist/Playlist'
 
 export const HistoryPage = () => {
 
   const dispatch = useDispatch()
-  const { playlists, playlistsLoaded  } = useSelector(state => state.playlist)
+  const { playlists, playlistsLoaded, selectedPlaylist } = useSelector(state => state.playlist)
 
   useEffect(() => {
 
@@ -19,13 +19,13 @@ export const HistoryPage = () => {
       dispatch(createPlaylist({playlistName:"History", type:'HISTORY'}))
     }
 
-  }, [dispatch, playlists])
-  
+    console.log("History playlist ------------")
+    console.log(selectedPlaylist)
+  }, [dispatch, playlists, selectedPlaylist])
 
   return (
     <div>
-      playlistId, 
-    {/* //   <Playlist /> */}
+       {selectedPlaylist && <Playlist playlistId={selectedPlaylist?.id}/>}
     </div>
   )
 }

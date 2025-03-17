@@ -14,6 +14,8 @@ import { VideoPage } from "./pages/VideoPage.jsx";
 import ErrorBoundary from "./Components/ErrorBoundary.jsx";
 import { Playlist } from "./Components/Playlist/Playlist.jsx";
 import { HistoryPage } from "./pages/HistoryPage.jsx";
+import { PlaylistPage } from "./pages/PlaylistPage.jsx";
+
 function App() {
   const dispatch = useDispatch();
   const { authStatus } = useSelector((state) => state.auth);
@@ -81,7 +83,7 @@ function App() {
               <Route path="/signup" element={<SignUpPage />} />
               <Route path="/signin" element={<SignInPage />} />
               <Route path="/video/:videoId" element={<VideoPage />} />
-              <Route path="/playlist/:playlistId" element={<Playlist />} />
+              <Route path="/playlist/:playlistId" element={<PlaylistPage />} />
               <Route path="/playlist/history" element={<HistoryPage />} />
             </Route>
           </Routes>

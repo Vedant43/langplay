@@ -1,33 +1,54 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 
-export const VideoCard = ({thumbnail, title, channelName, views, duration}) => {
+export const VideoCard = ({id, thumbnail, title, channelName, userProfilePicture, views, duration, createdAt}) => {
   return (
     <div className=''>
-      <div 
-        className='w-full rounded'
+      <Link
+        to={`/video/${id}`}
       >
-        <Link>
+        <div 
+          className='w-full rounded'
+        >
           <img 
             src={thumbnail} 
             className='w-full h-48 object-cover' 
           />
-        </Link>
-        <p>
-          {duration}
-        </p>
-      </div>
-
-      <div>
-        <h3 className=''>
+          <p>
+            {duration}
+          </p>
+        </div>
+      </Link>
+      <div 
+        className='flex'
+      >
+        <div>
+          <img 
+            src={userProfilePicture}
+            className='w-10 h-10 rounded-full'
+          />
+        </div>
+        <div>
+        <h3 
+          className='text-base'
+        >
           {title}
         </h3>
-        <p className=''>
-          {channelName}
-        </p>
-        <p>
-          {views}
-        </p>
+        <div
+         className='flex flex-col text-gray-1'
+        >
+          <p className=''>
+            {channelName}
+          </p>
+          <div className='flex gap-2'>
+            <p>
+              {views} views
+            </p>
+            <span>&#x2022;</span>
+            <p>{createdAt}</p>
+          </div>
+        </div>
+        </div>
       </div>
       
     </div>
