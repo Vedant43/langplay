@@ -104,7 +104,7 @@ export const Navbar = ({toggleSidebar}) => {
                             <div 
                                 className="hidden lg:block"
                             >
-                                <Link to={"/upload"} > 
+                                <Link to={"/upload-video"} > 
                                     <VideoCallIcon 
                                         sx={{
                                             color:"#616494",

@@ -22,7 +22,7 @@ export const Sidebar = ({isSidebarOpen}) => {
         {
             label: 'History',
             icon: <HistoryIcon />,
-            slug: "/history"
+            slug: "/playlist/history"
         },
         {
             label: 'Playlists',

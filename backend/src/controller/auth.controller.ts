@@ -145,6 +145,7 @@ export const getProfilePicAndChannelNameStatus = async (req: Request, res: Respo
 }
 
 export const setupProfile = async (req: Request, res: Response) => {
+    console.log(req.body)
     const { channelName, description } = req.body
     const userId = (req as AuthRequest).userId
     // const files = req.files as { [fieldname: string]: Express.Multer.File[] }
@@ -162,7 +163,6 @@ export const setupProfile = async (req: Request, res: Response) => {
     if(!existingUser){
       throw new ApiError(404, "User does not exist")
     }
-
     const channelNameExists = await prisma.user.findUnique({
       where: { 
         channelName 
@@ -224,13 +224,44 @@ export const getuserById = async (req: Request, res: Response) => {
       comments: true,
       community: true,
       playList: true,
-      videos: true
+      videos: true,
+      subscribedTo: true,
+      subscribers: true,
     }
   })
 
   if(!user) throw new ApiError(404, "User does not exist")
 
   return new ApiResponse(200, "User fetched successfully", user).send(res)
+}
+
+export const fetchSubscriptions = async (req: Request, res: Response) => {
+  const { userId } = req.params
+
+  const subscriptionsId = await prisma.channelEngagement.findMany({
+    where:{
+      channelId: Number(userId)
+    },
+    select:{
+      subscriberId: true
+    }
+  })
+
+  const subscriptions = await prisma.user.findMany({
+    where:{
+      id: {
+        in: subscriptionsId.map(subscription => subscription.subscriberId)
+      }
+    },
+    select:{
+      id: true,
+      username: true,
+      channelName: true,
+      profilePicture: true
+    }
+  })
+
+  return new ApiResponse(200, "Fetched subscriptions", subscriptions).send(res)
 }
 
 export const subscribeToChannel = async (req: Request, res: Response) => {

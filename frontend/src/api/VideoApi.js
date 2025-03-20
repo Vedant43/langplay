@@ -5,8 +5,18 @@ const fetchAllVideos = async () => {
     return response.data.data
 }
 
+const fetchAllVideosByUser = async () => {
+    const response = await apiClient.get("/video/:userId/videos")
+    return response.data.data
+}
+
 const fetchVideo = async ( videoId ) => {
     const response = await apiClient.get(`/video/${videoId}`)
+    return response.data.data
+}
+
+const increaseViewCount = async ( videoId ) => {
+    const response = await apiClient.post(`/video/${videoId}/view`)
     return response.data.data
 }
 
@@ -25,10 +35,20 @@ const dislikeVideo = async ( videoId ) => {
     return response.data.data
 }
 
-export default { 
-    fetchVideo, 
-    postComment, 
-    likeVideo, 
-    dislikeVideo, 
-    fetchAllVideos
-} 
+const uploadVideo = async ( data ) => {
+    const response = await apiClient.post("/video/upload", data)
+    console.log(response)
+    return response.data.message
+    
+}
+
+export default {
+    fetchVideo,
+    postComment,
+    likeVideo,
+    dislikeVideo,
+    fetchAllVideos,
+    increaseViewCount,
+    fetchAllVideosByUser,
+    uploadVideo
+}

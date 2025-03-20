@@ -1,6 +1,7 @@
 import { apiClient } from "./client"
 
 const createPlaylist = async ( name, type ) => {
+    console.log("name-----------")
     console.log({name})
     const response = await apiClient.post( "/playlist/create-playlist",  {name, type}  )
     console.log("Response from api --------------", response)
@@ -9,7 +10,6 @@ const createPlaylist = async ( name, type ) => {
 
 const fetchPlaylistsByUser = async () => {
     const response = await apiClient.get("/playlist/playlist")
-    console.log("fetchplaylistsbyuder-----------------")
     console.log(response)
     return response.data.data
 }

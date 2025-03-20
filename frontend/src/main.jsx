@@ -5,7 +5,7 @@
   import { Provider } from 'react-redux'
   import { ThemeProvider, createTheme } from "@mui/material/styles";
   import CssBaseline from "@mui/material/CssBaseline";
-import { store } from './Components/redux/store/store.js'
+  import { store } from './Components/redux/store/store.js'
   
   const theme = createTheme({
     palette: {
@@ -14,7 +14,7 @@ import { store } from './Components/redux/store/store.js'
         "gray-1": "#8D8E8D"
       }
     },
-  });
+  })
 
   createRoot(document.getElementById('root')).render(
     <StrictMode>

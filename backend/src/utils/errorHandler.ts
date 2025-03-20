@@ -13,6 +13,8 @@ const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
     console.log("Unknown Error:", err)
     err = new ApiError(500, "Internal Server Error", err.message)
   }
+
+  // else if(err.statusCode === 'P2002' && error instanceof Prisma.PrismaClientKnownRequestError)
   
   return err.handle(res)
 }

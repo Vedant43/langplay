@@ -19,6 +19,9 @@ export const authSlice = createSlice({
         },
         logout: (state) => {
             state.authStatus = false
+            state.profilePicture = null
+            state.username = ''
+            state.id = null
             state.channelName = ""
             localStorage.removeItem("accessToken")
         },

@@ -5,15 +5,40 @@ import ApiResponse from "../utils/ApiResponse"
 import ApiError from "../utils/ApiError"
 
 const prisma = new PrismaClient()
-
+// type      PlaylistType?     @default(USER_CREATED)
+//   createdAt DateTime          @default(now())
+//   updatedAt DateTime          @updatedAt
+//   userId    Int
+//   user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+//   videos    Playlist_videos[]
 export const getPlaylistsByUserId = async (req: Request, res: Response) => {
     const { userId } = (req as AuthRequest)
-
+    
     const playlists = await prisma.playlist.findMany({
         where: {
             userId: userId
         },
+        select: {
+            id: true,
+            name: true,
+            createdAt: true,
+            updatedAt: true,
+            userId: true,
+            type: true,
+            videos: {
+                take: 1,  
+                select: {
+                    Video: {
+                        select: {
+                            id: true,
+                            thumbnailUrl: true
+                        }
+                    }
+                }
+            }
+        }
     })
+
     return new ApiResponse(200, "Fetched playlists successfully", playlists).send(res)
 }
 
@@ -21,7 +46,7 @@ export const getPlaylistById = async (req: Request, res: Response) => {
 
     const playlistId = parseInt(req.params.playlistId, 10)
 
-    if(isNaN(playlistId)){
+    if (isNaN(playlistId)) {
         throw new ApiError(400, "Invalid playlist Id")
     }
 
@@ -95,6 +120,7 @@ export const createPlaylist = async (req: Request, res: Response) => {
 }
 
 export const saveVideoToPlaylist = async (req: Request, res: Response) => {
+    console.log("Req.body in save video to playlist----------", req.body)
     const videoId = parseInt(req.body.videoId, 10)
     const playlistId = parseInt(req.body.playlistId, 10)
 
@@ -124,6 +150,7 @@ export const saveVideoToPlaylist = async (req: Request, res: Response) => {
             playlistId
         }
     })
+
     return new ApiResponse(200, "Video added to playlist").send(res)
 }
 

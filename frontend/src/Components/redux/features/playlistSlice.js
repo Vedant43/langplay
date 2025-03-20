@@ -42,7 +42,10 @@ export const addVideoToPlaylist = createAsyncThunk(
     "playlists/addVideoToPlaylist",
     async ( {playlistId, videoId}, { rejectWithValue }) => {
         try {
+
             const response = await PlaylistApi.addVideoToPlaylist(playlistId, videoId)
+            console.log(response)
+            await dispatch(refreshPlaylists()).unwrap()
             return { playlistId, videoId}
         } catch (error) {
             return rejectWithValue(error?.response?.data?.message || "Failed to add videoto playlist")
@@ -91,9 +94,10 @@ export const playlistsSlice = createSlice({
     initialState: {
         playlists: [],
         selectedPlaylist: null,     // to open particular playlist
+        playlistVideos: [],
         status: "idle",
         error: null,
-        checkedPlaylists: null,      // For checkbox, if playlist  
+        checkedPlaylists: null,      // For checkbox, if playlist
         playlistsLoaded: false,
         addVideoStatus: "idle",
         removeVideoStatus: "idle",
@@ -105,8 +109,8 @@ export const playlistsSlice = createSlice({
             state.selectedPlaylist = action.payload
         },
         resetPlaylistsLoaded: (state) => {
-        state.playlistsLoaded = false
-    }
+            state.playlistsLoaded = false
+        }
     },
     extraReducers: (builder) => {
         builder

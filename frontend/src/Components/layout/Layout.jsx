@@ -12,7 +12,7 @@ export const Layout = () => {
     const screenType = useScreenType()
     const location = useLocation()
 
-    const routesAllowingSidebar = ['/']
+    const routesAllowingSidebar = ['/','/profile']
     const shouldShowSidebar = routesAllowingSidebar.includes(location.pathname) // using different variable instead of direct state to gain control over toggling
 
     let accessToken = localStorage.getItem('accessToken') 

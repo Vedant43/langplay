@@ -63,7 +63,11 @@ export const HomePage = () => {
 
     console.log(videos)
 
-    const { authStatus, channelName } = useSelector((state) => state.auth)
+    const { authStatus, channelName, id } = useSelector((state) => state.auth)
+
+    useEffect( () => {
+        console.log("Id from Home page------", id)
+    }, [id])
 
     return (
         <Container>

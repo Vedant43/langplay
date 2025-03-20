@@ -11,7 +11,7 @@ export const WatchLater = () => {
       if (!playlistsLoaded) return 
   
       const doWatchLaterPlaylistExists = playlists.find(p => p.type === 'WATCH_LATER')
-      if (doHistoryPlaylistExists) {
+      if (doWatchLaterPlaylistExists) {
         dispatch(setSelectedPlaylist(doWatchLaterPlaylistExists))
       } else {
         dispatch(createPlaylist({playlistName:"Watch Later", type:'WATCH_LATER'}))

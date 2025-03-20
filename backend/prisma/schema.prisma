@@ -134,7 +134,7 @@ enum Engagement {
 }
 
 enum PlaylistType {
-  LIKED
+  LIKED_VIDEO
   WATCH_LATER
   HISTORY
   USER_CREATED 

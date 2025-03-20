@@ -1,5 +1,5 @@
 import express from "express";
-import { signUp, signIn, setupProfile, getuserById, getProfilePicAndChannelNameStatus } from "../controller/auth.controller";
+import { signUp, signIn, setupProfile, getuserById, getProfilePicAndChannelNameStatus, fetchSubscriptions } from "../controller/auth.controller";
 import asyncHandler from "../utils/asyncHandler";
 import { validate } from "../middleware/validator.middleware";
 import { setupProfileSchema, signInSchema, signUpSchema } from "../validators/zod.schema";
@@ -11,13 +11,15 @@ const router = express.Router();
 
 router.post("/signup", uploadProfileCover, validate(signUpSchema),  asyncHandler(signUp))
 
-router.post("/setup-profile", authenticate, uploadProfileCover, validate(setupProfileSchema), asyncHandler(setupProfile))
+router.post("/update-profile", authenticate, uploadProfileCover, validate(setupProfileSchema), asyncHandler(setupProfile))
 
 router.post("/signin",validate(signInSchema), asyncHandler(signIn))
 
 router.get("/profile-info", authenticate, asyncHandler(getProfilePicAndChannelNameStatus))
 
 router.get("/user", authenticate, asyncHandler(getuserById))
+
+router.get("/:userId", asyncHandler(fetchSubscriptions))
 
 router.post("/subscribe", authenticate, asyncHandler(subscribeToChannel))
 

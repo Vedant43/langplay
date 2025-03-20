@@ -9,7 +9,7 @@ export const PlaylistCard = ( {name, thumbnail, count, time} ) => {
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}
-    >
+    > 
       {/* Bottom Blur */}
       <div
         className="absolute inset-x-0 bottom-0 p-4"
@@ -17,7 +17,7 @@ export const PlaylistCard = ( {name, thumbnail, count, time} ) => {
           backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent black
           backdropFilter: 'blur(8px)', // Blur effect
         }}
-      >
+      > 
         <div className="text-white flex justify-between">
           <div>  
             <h2 className="text-xl font-semibold">{name}</h2>

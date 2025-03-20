@@ -17,11 +17,21 @@ export const uploadVideo = async (req: Request, res: Response) => {
     
     const authReq = req as AuthRequest
     const { title,description } = authReq.body as { title: string; description: string }
-    const { userId } = authReq;
+    const { userId } = authReq
     const files = req.files as MulterFileFields | undefined
 
     const videoFilePath = files?.video?.[0]?.path || null
     const thumbnailFilePath = files?.thumbnail?.[0]?.path || null
+
+    const isTitleExist = await prisma.video.findUnique({
+        where:{
+            title
+        }
+    })
+
+    if(isTitleExist) {
+        throw new ApiError(409, "Title already exists!")
+    }
 
     let videoResponse
     if(videoFilePath){
@@ -59,7 +69,7 @@ export const uploadVideo = async (req: Request, res: Response) => {
 
 export const getVideoById = async (req: Request, res: Response) => {
     const videoId = parseInt(req.params.id, 10)
-    if (isNaN(videoId)) throw new ApiError(400, "Invalid video ID");
+    if (isNaN(videoId)) throw new ApiError(400, "Invalid video ID")
 
     // update video view counts
     const video = await prisma.video.findUnique({
@@ -99,6 +109,24 @@ export const getVideoById = async (req: Request, res: Response) => {
     return new ApiResponse(200, "Video fetched successfully", video).send(res)
 }
 
+export const increaseViewCount = async (req: Request, res: Response) => {
+    const videoId = parseInt(req.params.id, 10)
+    if (isNaN(videoId)) throw new ApiError(400, "Invalid video ID")
+
+    await prisma.video.update({
+        where: { 
+            id: videoId 
+        },
+        data: { 
+            views: { 
+                increment: 1 
+            } 
+        }
+    })
+
+    return new ApiResponse(200, "View count increased...").send(res)
+}
+
 export const deleteVideoById = async (req: Request, res: Response) => {
     // need to make sure if user is owner
     const videoId = parseInt(req.params.id, 10)
@@ -115,9 +143,10 @@ export const deleteVideoById = async (req: Request, res: Response) => {
 }
 
 export const getVideosByUser = async (req: Request, res: Response) => {
-    const userId = parseInt(req.params.userId, 10)
-    // const userId = (req as AuthRequest).userId
-
+    // const userId = parseInt(req.params.userId, 10)
+    const userId = (req as AuthRequest).userId
+    console.log("user -------------")
+    console.log(userId)
     // need to check if user wants his own videos or other user's videos
     const videos = await prisma.video.findMany({
         where: {
@@ -135,7 +164,8 @@ export const getVideosByUser = async (req: Request, res: Response) => {
             createdAt: true,
         }
     })
-
+    console.log("videos by user -------------")
+    console.log(videos)
     return new ApiResponse(200, "Videos fetched successfully", videos).send(res)
 }
 

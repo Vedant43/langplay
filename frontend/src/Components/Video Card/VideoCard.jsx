@@ -1,7 +1,8 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
+import { formatDistanceToNow } from 'date-fns';
 
-export const VideoCard = ({id, thumbnail, title, channelName, userProfilePicture, views, duration, createdAt}) => {
+export const VideoCard = ({ id, thumbnail, title, channelName, userProfilePicture, views, duration, createdAt}) => {
   return (
     <div className=''>
       <Link
@@ -45,7 +46,7 @@ export const VideoCard = ({id, thumbnail, title, channelName, userProfilePicture
               {views} views
             </p>
             <span>&#x2022;</span>
-            <p>{createdAt}</p>
+            <p>{getTimeAgo(createdAt)}</p>
           </div>
         </div>
         </div>
@@ -53,4 +54,8 @@ export const VideoCard = ({id, thumbnail, title, channelName, userProfilePicture
       
     </div>
   )
+}
+
+const getTimeAgo = (createdAt) => {
+  return formatDistanceToNow(new Date(createdAt), { addSuffix: true });
 }
