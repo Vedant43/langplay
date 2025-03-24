@@ -1,12 +1,13 @@
 import React from 'react'
+import { getTimeAgo } from '../../utils/formattingTime'
 
 export const PlaylistItem = ( {id, title, views, channelName, createdAt, thumbnailUrl, videoUrl } ) => {
   return (
     <div 
-        className='flex gap-3 border border-solid border-zinc-300 rounded-md'
+        className='flex gap-3 mb-2 border border-solid border-zinc-300 rounded-md'
     >
       <div
-        className='flex'
+        className='flex items-center justify-center'
       >  
         <img 
             src={thumbnailUrl}
@@ -35,14 +36,14 @@ export const PlaylistItem = ( {id, title, views, channelName, createdAt, thumbna
                 &#8226;
             </span>
             <span>
-                {createdAt}
+              {getTimeAgo(createdAt)}
             </span>
         </div>
 
         <div
             className='text-sm'
         >
-            {channelName}
+            {/* {channelName} */}
         </div>
       </div>
 

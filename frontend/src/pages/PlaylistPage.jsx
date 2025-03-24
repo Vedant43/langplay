@@ -4,7 +4,7 @@ import { Playlist } from '../Components/Playlist/Playlist'
 
 export const PlaylistPage = () => {
     const { playlistId } = useParams()
-
+    
     return (
         <div>
             <Playlist playlistId={playlistId}/>

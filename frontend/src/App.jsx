@@ -18,6 +18,7 @@ import { PlaylistPage } from "./pages/PlaylistPage.jsx";
 import { UploadVideoPage } from "./pages/UploadVideoPage.jsx";
 import { SetupProfilePage } from "./pages/ProfileSetupPage.jsx";
 import { ProtectedRoutes } from "./utils/ProtectedRoutes.jsx";
+import { LikedVideosPage } from "./pages/LikedVideoPage.jsx";
 function App() {
   const dispatch = useDispatch();
   const { authStatus } = useSelector((state) => state.auth);
@@ -31,9 +32,9 @@ function App() {
     if (accessToken) {
       UserApi.fetchProfileInfo()
         .then((response) => {
+          
           const { username } = response;
           const id = Number(response.id);
-          console.log("Id while app is rendered", id)
           let channelName = response.channelName;
           let profilePicture = response.profilePicture;
 
@@ -91,6 +92,7 @@ function App() {
               <Route path="/video/:videoId" element={<VideoPage />} />
               <Route path="/playlist/:playlistId" element={<PlaylistPage />} />
               <Route path="/playlist/history" element={<HistoryPage />} />
+              <Route path="/playlist/liked-videos" element={<LikedVideosPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route element={ <ProtectedRoutes />} >
                 <Route path="/upload-video" element={<UploadVideoPage />} />

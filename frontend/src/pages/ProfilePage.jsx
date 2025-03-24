@@ -16,6 +16,7 @@ export const ProfilePage = () => {
     const [ activeTab, setActiveTab ] = useState("Videos")
     const [ isSubscribed, setIsSubscribed ] = useState(false)
     const [ subscriptions, setSubscriptions ] = useState([])
+    const [ profilePic, setProfilePic ] = useState(avatar)
 
     const { playlists } = useSelector((state) => state.playlist)
     const { id } = useSelector((state) => state.auth)
@@ -26,12 +27,16 @@ export const ProfilePage = () => {
         .then( response => {
             console.log(response)
             setUserData(response)
+            // setProfilePic(response.profilePicture)
         })
         .catch( error => {
             console.log(error)
         })
-    }, [])
+    }, [id])
 
+    useEffect( () => {
+        console.log(playlists)
+    }, [playlists])
 
     useEffect( () => {
         if (!userData.id) return
@@ -64,9 +69,10 @@ export const ProfilePage = () => {
         <div className="flex items-center">
             <div className="mr-4">
                 <img
-                src={userData.profilePicture ?? avatar}
-                alt="Profile"
-                className="w-28 h-28 rounded-full"
+                    // src={profilePic}
+                    src={userData?.profilePicture ?? avatar}
+                    alt="Profile"
+                    className="w-28 h-28 rounded-full"
                 />
             </div>
             <div className="flex-1 mt-3">
@@ -132,7 +138,7 @@ export const ProfilePage = () => {
                                 thumbnail={video.thumbnailUrl}
                                 title={video.title}
                                 channelName={video.user?.username}
-                                userProfilePicture={video.user?.profilePicture ?? avatar}
+                                userProfilePicture={userData?.profilePicture ?? avatar}
                                 views={video.views}
                                 duration={video.duration}
                                 createdAt={video.createdAt}
@@ -151,16 +157,16 @@ export const ProfilePage = () => {
                                     className="h-56" 
                                 >  
                                     <Link to={`/playlist/${playlist.id}`}>
-                                    <PlaylistCard
-                                        name={playlist.name}
-                                        thumbnail={
-                                            playlist.videos.length > 0 
-                                            ? playlist.videos[0].Video.thumbnailUrl
-                                            : placeholder
-                                        }                                    
-                                        count={playlist.videos.length}
-                                        time={playlist.createdAt}
-                                    />
+                                        <PlaylistCard
+                                            name={playlist.name}
+                                            thumbnail={
+                                                playlist.videos.length > 0 
+                                                ? playlist.videos[0].Video.thumbnailUrl
+                                                : placeholder
+                                            }                                    
+                                            count={playlist._count.videos}
+                                            time={playlist.createdAt}
+                                        />
                                     </Link>
                                 </div>
                             ))}

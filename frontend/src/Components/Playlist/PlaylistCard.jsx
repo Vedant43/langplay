@@ -1,6 +1,7 @@
 import React from 'react'
+import { getTimeAgo } from '../../utils/formattingTime'
 
-export const PlaylistCard = ( {name, thumbnail, count, time} ) => {
+export const PlaylistCard = ( {name, thumbnail, count, time, id} ) => {
   return (
     <div
       className="relative cursor-pointer h-full w-full rounded-2xl overflow-hidden"
@@ -21,7 +22,8 @@ export const PlaylistCard = ( {name, thumbnail, count, time} ) => {
         <div className="text-white flex justify-between">
           <div>  
             <h2 className="text-xl font-semibold">{name}</h2>
-            <p className="text-sm">{time}</p>
+            <p>{getTimeAgo(time)}</p>
+            {/* <p className="text-sm">{getTimeAgo(time)}</p> */}
           </div>
           <div>
             <p className="text-sm">{count} {count > 1 ? "videos" : "video"} </p>

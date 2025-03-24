@@ -17,7 +17,7 @@ export const Sidebar = ({isSidebarOpen}) => {
         {
             label: 'Liked Videos',
             icon: <ThumbUpIcon />,
-            slug: "/liked-videos"
+            slug: "/playlist/liked-videos"
         },
         {
             label: 'History',

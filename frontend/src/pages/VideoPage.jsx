@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react" 
+import React, { useEffect, useState, useMemo, useRef } from "react" 
 import VideoApi from "../api/VideoApi" 
 import toast from "react-hot-toast" 
 import { useParams } from "react-router-dom" 
@@ -112,8 +112,9 @@ export const VideoPage = () => {
         setIsSubscribed(false)
       }
 
-      setIsOwnChannel(id === data.user?.id) 
+      const playlistNames = playlists.map( p => p.type === 'USER_CREATED')
 
+      setIsOwnChannel(id === data.user?.id) 
       setSubscriberCount(data.user?.subscribers.length)
     }) 
   }, [videoId, id, authStatus]) 
@@ -221,7 +222,7 @@ export const VideoPage = () => {
 
         setIsLiked(response.liked)
         setCountLikes(response.likeCount)
-        dispatch(addVideoToPlaylist( {likedVideosPlaylistId, videoId} ))
+        dispatch(addVideoToPlaylist( {playlistId:likedVideosPlaylistId, videoId} ))
 
       } else {
 
@@ -240,20 +241,32 @@ export const VideoPage = () => {
     })
   }
 
+  const selectUserCreatedPlaylists = useMemo(() => {
+    return playlists.filter(playlist => playlist.type === "USER_CREATED")
+  }, [playlists])
+
   const openPlaylistModal = async (e) => {
     e.stopPropagation() 
     setPlaylistModal(true) 
     try {
       await dispatch(fetchPlaylistsIfNeeded()).unwrap() 
 
-      const playlistsId = playlists.map((p) => p.id) 
+      // const playlistsId = playlists.map((p) => p.id) 
 
-      const response = await PlaylistApi.isVideoInPlaylist(
-        playlistsId,
-        videoId
-      ) 
+      // const response = await PlaylistApi.isVideoInPlaylist(
+      //   playlistsId,
+      //   videoId
+      // ) 
 
-      setPlaylistToAddVideo(response) 
+      // setPlaylistToAddVideo(response) 
+
+      const playlistsId = selectUserCreatedPlaylists.map((p) => p.id)
+    
+    const response = await PlaylistApi.isVideoInPlaylist(
+      playlistsId,
+      videoId
+    )
+    setPlaylistToAddVideo(response)
     } catch (error) {
       console.log(error) 
     }
@@ -267,17 +280,14 @@ export const VideoPage = () => {
   const handleCheckedState = async (playlistId, videoId) => {
     try {
       if (playlistToAddVideo.includes(playlistId)) {
-        await dispatch(
-          removeVideoFromPlaylist({ playlistId, videoId })
-        ).unwrap() 
-
         setPlaylistToAddVideo((prevSelected) =>
           prevSelected.filter((id) => id !== playlistId)
-        ) 
-      } else {
-        await dispatch(addVideoToPlaylist({ playlistId, videoId })).unwrap() 
+        )
+        await dispatch(removeVideoFromPlaylist({ playlistId, videoId })).unwrap() 
 
+      } else {
         setPlaylistToAddVideo((prevSelected) => [...prevSelected, playlistId]) 
+        await dispatch(addVideoToPlaylist({ playlistId, videoId })).unwrap() 
       }
     } catch (error) {
       console.log(error) 
@@ -437,8 +447,8 @@ export const VideoPage = () => {
                         </div>
 
                         <div className="pt-2">
-                          {playlists.length > 0 ? (
-                            playlists.map((playlist, index) => (
+                          {selectUserCreatedPlaylists.length > 0 ? (
+                            selectUserCreatedPlaylists.map((playlist, index) => (
                               <div key={index} className="flex gap-3">
                                 <input
                                   id={index}

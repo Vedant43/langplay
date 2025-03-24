@@ -25,6 +25,9 @@ export const getPlaylistsByUserId = async (req: Request, res: Response) => {
             updatedAt: true,
             userId: true,
             type: true,
+            _count: {
+                select: { videos: true }  // Count total videos in the playlist
+            },
             videos: {
                 take: 1,  
                 select: {

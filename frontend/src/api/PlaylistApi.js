@@ -20,11 +20,14 @@ const isVideoInPlaylist = async ( playlistId, videoId ) => {
 }
 
 const addVideoToPlaylist = async ( playlistId, videoId ) => {
+    console.log(playlistId, videoId)
     const response = await apiClient.post("/playlist/save-video-to-playlist", {playlistId, videoId})
+    console.log(response)
     return response.data.data
 }
 
 const fetchPlaylistById = async ( playlistId ) => {
+    console.log(playlistId)
     const response = await apiClient.get(`/playlist/playlist/${playlistId}`)
     return response.data.data
 }

@@ -19,6 +19,8 @@ export const fetchPlaylists = createAsyncThunk(
     async ( _, { rejectWithValue } ) => {
         try {
             const response = await PlaylistApi.fetchPlaylistsByUser()
+            console.log("--------------------------------------------------------------------")
+            console.log(response)
             return response
         } catch (error) {
             return rejectWithValue(error.response?.data?.data?.message || "Failed to fetch playlists")
@@ -30,6 +32,7 @@ export const fetchPlaylistById = createAsyncThunk(
     "playlists/fetchPlaylistById",
     async ( playlistId, { rejectWithValue }) => {
         try {
+            console.log(playlistId)
             const response = await PlaylistApi.fetchPlaylistById(playlistId)
             return response
         } catch (error) {
@@ -42,7 +45,8 @@ export const addVideoToPlaylist = createAsyncThunk(
     "playlists/addVideoToPlaylist",
     async ( {playlistId, videoId}, { rejectWithValue }) => {
         try {
-
+            console.log("playlistId", playlistId)
+            console.log("videoId", videoId)
             const response = await PlaylistApi.addVideoToPlaylist(playlistId, videoId)
             console.log(response)
             await dispatch(refreshPlaylists()).unwrap()
@@ -80,9 +84,11 @@ export const fetchPlaylistsIfNeeded = createAsyncThunk(
 export const refreshPlaylists = createAsyncThunk(
     "playlists/refreshPlaylists",
     async (_, { dispatch }) => {
-
+        console.log("Before resetting playlist")
         dispatch(resetPlaylistsLoaded())
+        console.log("After resetting playlist")
         const response = await dispatch(fetchPlaylists()).unwrap()
+        console.log("Response after fetching playlists in refresh playlist")
         return response
         // leads to infinite loop or unexpected behaviour
         // return dispatch(fetchPlaylists())
@@ -92,9 +98,9 @@ export const refreshPlaylists = createAsyncThunk(
 export const playlistsSlice = createSlice({
     name: "playlists",
     initialState: {
-        playlists: [],
+        playlists: [],              // meta data of playlists
         selectedPlaylist: null,     // to open particular playlist
-        playlistVideos: [],
+        playlistVideos: {},         // playlist videos
         status: "idle",
         error: null,
         checkedPlaylists: null,      // For checkbox, if playlist
