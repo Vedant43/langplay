@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Container } from "../Components/container/Container";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -16,10 +16,8 @@ import { setUser } from "../Components/redux/features/authSlice";
 import { fetchPlaylistsIfNeeded } from "../Components/redux/features/playlistSlice";
 
 export const SignInPage = () => {
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const dispatch = useDispatch();
 
+  const [loading, setLoading] = useState(false)
   const { register, handleSubmit, setError, reset, formState: { errors } } = useForm({
     mode: "onChange",
     defaultValues: {
@@ -27,10 +25,15 @@ export const SignInPage = () => {
       password: "",
     },
     resolver: zodResolver(signInSchema),
-  });
+  })
+
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const redirectTo = new URLSearchParams(location.search).get("redirect") || "/";
 
   const onSubmit = async (data) => {
-    setLoading(true);
+    setLoading(true)
 
     UserApi.userSignIn(data)
       .then((response) => {
@@ -44,7 +47,7 @@ export const SignInPage = () => {
         dispatch(setUser({ profilePicture, channelName, username, id }))
         dispatch(fetchPlaylistsIfNeeded())
         localStorage.setItem("accessToken", response.accessToken)
-        navigate("/")
+        navigate(redirectTo)
       })
       .catch((error) => {
         setLoading(false)

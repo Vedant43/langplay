@@ -26,15 +26,19 @@ const updateProfile = async (data) => {
     return response.data.data
 }
 
-// router.get("/user", authenticate, asyncHandler(getuserById))
-const getUser = async () => {
-    const response = await apiClient.get("user/user")
+const getUser = async (userId) => {
+    const response = await apiClient.get(`user/profile/${userId}`)
     console.log(response)
     return response.data.data
 }
 
 const fetchSubscriptions = async (userId) => {
     const response = await apiClient.get(`user/${userId}`)
+    return response.data.data
+}
+
+const getSubscriberCount = async () => {
+    const response = await apiClient.get(`user/subscribers/count`)
     return response.data.data
 }
 
@@ -45,5 +49,6 @@ export default {
     userSignUp,
     subscribe,
     getUser,
-    fetchSubscriptions
+    fetchSubscriptions,
+    getSubscriberCount
 }

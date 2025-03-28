@@ -10,9 +10,7 @@ const router = Router()
 
 router.post("/upload", authenticate, uploadVideoWithThumbnail, validate(videoUploadSchema), asyncHandler(uploadVideo))
 
-router.delete("/:id", authenticate, asyncHandler(deleteVideoById))
-
-router.get("/:userId/videos", asyncHandler(getVideosByUser)) // 
+router.get("/:userId/videos", asyncHandler(getVideosByUser)) 
 
 router.get("/", asyncHandler(getAllVideos))
 
@@ -29,6 +27,8 @@ router.post("/:id/dislike", authenticate, asyncHandler(dislikeVideo))
 router.post("/:videoId/comment", authenticate, validate(commentSchema), asyncHandler(addComment))
 
 // router.get("/:videoId/comments", authenticate ,asyncHandler(getComments)) // not needed as comment will be fetched in getVideoById
+
+router.delete("/:id", authenticate, asyncHandler(deleteVideoById))
 
 router.delete("/:userId/comment/:commentId", authenticate, asyncHandler(deleteCommentById))
 // need to update, should be video id and commentid

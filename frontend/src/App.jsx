@@ -19,12 +19,13 @@ import { UploadVideoPage } from "./pages/UploadVideoPage.jsx";
 import { SetupProfilePage } from "./pages/ProfileSetupPage.jsx";
 import { ProtectedRoutes } from "./utils/ProtectedRoutes.jsx";
 import { LikedVideosPage } from "./pages/LikedVideoPage.jsx";
+import { DashboardPage } from "./pages/DashboardPage.jsx";
+
 function App() {
   const dispatch = useDispatch();
-  const { authStatus } = useSelector((state) => state.auth);
+  const { authStatus, id } = useSelector((state) => state.auth);
   const { playlistsLoaded } = useSelector((state) => state.playlist);
   const { playlists } = useSelector((state) => state.playlist);
-
 
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
@@ -37,13 +38,14 @@ function App() {
           const id = Number(response.id);
           let channelName = response.channelName;
           let profilePicture = response.profilePicture;
+          let subscribers = response.subscribers.length> 0 ? response.subscribers.length : 0
 
           if (!profilePicture) profilePicture = avatar;
-          dispatch(setUser({ profilePicture, channelName, username, id }));
+          dispatch(setUser({ profilePicture, channelName, username, id, subscribers }))
         })
         .catch((error) => console.log(error));
     }
-  }, []);
+  }, [])
 
     // useEffect(() => {
     //   console.log("Id in useeffect-------", id)
@@ -93,10 +95,11 @@ function App() {
               <Route path="/playlist/:playlistId" element={<PlaylistPage />} />
               <Route path="/playlist/history" element={<HistoryPage />} />
               <Route path="/playlist/liked-videos" element={<LikedVideosPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
+              <Route path={`/profile/:userId`} element={<ProfilePage />} />
               <Route element={ <ProtectedRoutes />} >
                 <Route path="/upload-video" element={<UploadVideoPage />} />
                 <Route path="/profile-update" element={<SetupProfilePage />} />
+                <Route path="/dashboard" element={<DashboardPage />} />
               </Route>
             </Route>
           </Routes>

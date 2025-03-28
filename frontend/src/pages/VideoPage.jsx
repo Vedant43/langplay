@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo, useRef } from "react" 
 import VideoApi from "../api/VideoApi" 
 import toast from "react-hot-toast" 
-import { useParams } from "react-router-dom" 
+import { useNavigate, useParams } from "react-router-dom" 
 import { PulseLoader } from "react-spinners" 
 import ThumbUpIcon from "@mui/icons-material/ThumbUp" 
 import ThumbUpOffAltIcon from "@mui/icons-material/ThumbUpOffAlt" 
@@ -18,6 +18,8 @@ import { VideoListCard } from "../Components/Video Card/VideoListCard"
 import PlaylistApi from "../api/PlaylistApi" 
 import UserApi from "../api/UserApi" 
 import avatar from "../assets/default-avatar.jpg" 
+import { getTimeAgo } from "../utils/formattingTime"
+import { Link } from "react-router-dom"
 
 export const VideoPage = () => {
   const videoRef = useRef(null) 
@@ -74,6 +76,7 @@ export const VideoPage = () => {
   const [subscriberCount, setSubscriberCount] = useState(0) 
   
   const { videoId } = useParams()
+  const navigate = useNavigate()
   const dispatch = useDispatch()
 
   const { username, profilePicture, id, authStatus } = useSelector((state) => state.auth)
@@ -135,21 +138,19 @@ export const VideoPage = () => {
         if (!playlistsLoaded) return
 
         const historyVideosPlaylist = playlists.find(p => p.type === 'HISTORY')
-        // console.log(historyVideosPlaylist)
-          // console.log(historyVideosPlaylist.videos[0].Video.id)
-          // console.log(videoId)
-          // console.log(historyVideosPlaylist.videos[0].Video.id)
         
         const historyPlaylistId = historyVideosPlaylist ? historyVideosPlaylist.id : null
 
-        if(!historyPlaylistId) {
-          console.log("Not once but twicw")
-          dispatch(createPlaylist( {playlistName:"History", type:'HISTORY'} ))
-        } else{
-          const ifVideoExistInPlaylist = historyVideosPlaylist.videos.find(v => v.Video.id === videoId)
-          
-          if(!ifVideoExistInPlaylist) {
-            dispatch(addVideoToPlaylist( {playlistId: historyPlaylistId, videoId} ))
+        if(id){
+          if(!historyPlaylistId) {
+            console.log("Not once but twicw")
+            dispatch(createPlaylist( {playlistName:"History", type:'HISTORY'} ))
+          } else{
+            const ifVideoExistInPlaylist = historyVideosPlaylist.videos.find(v => v.Video.id === videoId)
+            
+            if(!ifVideoExistInPlaylist) {
+              dispatch(addVideoToPlaylist( {playlistId: historyPlaylistId, videoId} ))
+            }
           }
         }
       }
@@ -163,6 +164,12 @@ export const VideoPage = () => {
   }, [videoId, playlists, playlistsLoaded])
 
   const handleCommentPost = () => {
+
+    if (!id) {
+      toast.error("Sign in required")
+      navigate(`/signin?redirect=/video/${videoId}`)
+    }
+
     if (content === "") {
       setIsLoading(false) 
       toast.error("Comment cant be empty") 
@@ -197,10 +204,15 @@ export const VideoPage = () => {
   } 
 
   const handleLikeDislike = (e) => {
-    const id = e.currentTarget.id
+
+    if (!id) {
+      navigate(`/signin?redirect=/video/${videoId}`)
+    }
+
+    const engagementId = e.currentTarget.id
 
     const apiCall =
-      id === "like"
+    engagementId === "like"
         ? VideoApi.likeVideo(videoId)
         : VideoApi.dislikeVideo(videoId)
 
@@ -245,8 +257,18 @@ export const VideoPage = () => {
     return playlists.filter(playlist => playlist.type === "USER_CREATED")
   }, [playlists])
 
+  const createNewPlaylist = () => {
+    dispatch(createPlaylist({ playlistName })) 
+    setPlaylistName("") 
+  }
+
   const openPlaylistModal = async (e) => {
     e.stopPropagation() 
+    
+    if (!id) {
+      navigate(`/signin?redirect=/video/${videoId}`)
+    }
+
     setPlaylistModal(true) 
     try {
       await dispatch(fetchPlaylistsIfNeeded()).unwrap() 
@@ -262,19 +284,14 @@ export const VideoPage = () => {
 
       const playlistsId = selectUserCreatedPlaylists.map((p) => p.id)
     
-    const response = await PlaylistApi.isVideoInPlaylist(
-      playlistsId,
-      videoId
-    )
-    setPlaylistToAddVideo(response)
-    } catch (error) {
+      const response = await PlaylistApi.isVideoInPlaylist(
+        playlistsId,
+        videoId
+      )
+      setPlaylistToAddVideo(response)
+    }catch (error) {
       console.log(error) 
     }
-  }
-
-  const createNewPlaylist = () => {
-    dispatch(createPlaylist({ playlistName })) 
-    setPlaylistName("") 
   }
 
   const handleCheckedState = async (playlistId, videoId) => {
@@ -295,6 +312,11 @@ export const VideoPage = () => {
   }
 
   const handleSubscribe = (channelId) => {
+
+    if (!id) {
+      navigate(`/signin?redirect=/video/${videoId}`)
+    }
+
     if (channelId===id) return
     UserApi.subscribe(channelId)
       .then((response) => {
@@ -502,31 +524,37 @@ export const VideoPage = () => {
           {/* views and when created section */}
           <div className="flex gap-1 pt-6 lg:pt-2 text-sm text-zinc-600">
             <span>{videoData.views} views</span>
-            <span>&#x2022 </span>
-            <span>{videoData.createdAt}</span>
+            <span>&#x2022; </span>
+            <span>{getTimeAgo(videoData.createdAt)}</span>
           </div>
 
           {/* user detail */}
-          <div className="flex justify-between pt-4">
-            <div className="flex gap-2">
-              <div>
-                <img
-                  className="w-12 h-12 rounded-full"
-                  src={videoData.user.profilePicture || profilePicture}
-                  alt="profile picture"
-                />
-              </div>
-              <div className="flex flex-col gap-">
-                <div className="font-semibold text-sm">
-                  {videoData.user.username}
+          <div 
+            className="flex justify-between pt-4"
+          >
+            <Link 
+              to={`/profile/${videoData?.user?.id}`}
+              className="no-underline"
+            >
+              <div className="flex gap-2">
+                <div>
+                  <img
+                    className="w-12 h-12 rounded-full"
+                    src={videoData.user.profilePicture || profilePicture}
+                    alt="profile picture"
+                  />
                 </div>
-                {/* handle subscriber */}
-                <div className="text-gray-2 text-sm">
-                  {subscriberCount} subscriber{subscriberCount > 1 ? "s" : ""}
+                <div className="flex flex-col gap-">
+                  <div className="font-semibold text-sm">
+                    {videoData.user.username}
+                  </div>
+                  {/* handle subscriber */}
+                  <div className="text-gray-2 text-sm">
+                    {subscriberCount} subscriber{subscriberCount > 1 ? "s" : ""}
+                  </div>
                 </div>
               </div>
-            </div>
-
+            </Link>
             <div
               className={`flex items-center justify-center gap-2 w-32 cursor-pointer lg:border-solid lg:border h-12 rounded-full p-1 transition-all duration-300 
               ${!isOwnChannel

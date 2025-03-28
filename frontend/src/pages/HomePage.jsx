@@ -52,7 +52,8 @@ export const HomePage = () => {
     //         }
     // ]  
 
-    const [videos, setVideos] = useState([])
+    const [ videos, setVideos ] = useState([])
+    const [ searchQuery, setSearchQuery ] = useState("")
 
     useEffect( () => {
         VideoApi.fetchAllVideos()
@@ -64,10 +65,6 @@ export const HomePage = () => {
     console.log(videos)
 
     const { authStatus, channelName, id } = useSelector((state) => state.auth)
-
-    useEffect( () => {
-        console.log("Id from Home page------", id)
-    }, [id])
 
     return (
         <Container>

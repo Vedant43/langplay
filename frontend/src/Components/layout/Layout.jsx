@@ -13,7 +13,7 @@ export const Layout = () => {
     const location = useLocation()
 
     const routesAllowingSidebar = ['/','/profile']
-    const shouldShowSidebar = routesAllowingSidebar.includes(location.pathname) // using different variable instead of direct state to gain control over toggling
+    const shouldShowSidebar = routesAllowingSidebar.includes(location.pathname)
 
     let accessToken = localStorage.getItem('accessToken') 
 
@@ -48,7 +48,6 @@ export const Layout = () => {
             <div 
                 className={`flex pt-16 min-h-screen`}
             >
-            
                 <aside 
                     className={`fixed lg: min-h-screen border border-solid border-r-1 border-zinc-300`}        
                 >
@@ -65,5 +64,3 @@ export const Layout = () => {
         </div>
     )
 }
-
-// apply flex grow on main 

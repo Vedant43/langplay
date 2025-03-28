@@ -8,35 +8,52 @@ import { PlaylistCard } from "../Components/Playlist/PlaylistCard";
 import placeholder from "../assets/placeholder.png"
 import UserApi from "../api/UserApi";
 import GroupAddIcon from "@mui/icons-material/GroupAdd"
-import { Link } from "react-router-dom"
+import { Link, useParams } from "react-router-dom"
 
 export const ProfilePage = () => {
 
     const [ userData, setUserData ] = useState({})
     const [ activeTab, setActiveTab ] = useState("Videos")
+    const [ subscriberCount, setSubscriberCount ] = useState(0)
     const [ isSubscribed, setIsSubscribed ] = useState(false)
     const [ subscriptions, setSubscriptions ] = useState([])
-    const [ profilePic, setProfilePic ] = useState(avatar)
+    const [ isOwnProfile, setIsOwnProfile ] = useState(false)
 
     const { playlists } = useSelector((state) => state.playlist)
     const { id } = useSelector((state) => state.auth)
+    const {userId} = useParams()
     const tabs = ["Videos", "Playlists", "Subscriptions"]
 
     useEffect( () => {
-        UserApi.getUser()
+        UserApi.getUser(userId)
         .then( response => {
             console.log(response)
             setUserData(response)
-            // setProfilePic(response.profilePicture)
+            setIsOwnProfile(userId == id)
         })
         .catch( error => {
             console.log(error)
         })
-    }, [id])
+    }, [userId])
 
-    useEffect( () => {
-        console.log(playlists)
-    }, [playlists])
+    const handleSubscribe = (channelId) => {
+        if (channelId===id) return
+        UserApi.subscribe(channelId)
+          .then((response) => {
+            setSubscriberCount((prev) => {
+              if (isSubscribed) {
+                setIsSubscribed(false)
+                return prev - 1
+              } else {
+                setIsSubscribed(true)
+                return prev + 1
+              }
+            }) 
+          })
+          .catch((error) => {
+            console.log(error) 
+          }) 
+    } 
 
     useEffect( () => {
         if (!userData.id) return
@@ -69,7 +86,6 @@ export const ProfilePage = () => {
         <div className="flex items-center">
             <div className="mr-4">
                 <img
-                    // src={profilePic}
                     src={userData?.profilePicture ?? avatar}
                     alt="Profile"
                     className="w-28 h-28 rounded-full"
@@ -92,14 +108,44 @@ export const ProfilePage = () => {
         <div 
             className="flex items-center"
         >
-            <Link 
-                to="/profile-update"
-                className="no-underline"
-            >
-                <button className="bg-primary hover:bg-h-primary text-white px-4 py-1 cursor-pointer rounded-md text-sm flex items-center">
-                <EditIcon className="h-4 w-4 mr-1" /> Update
-                </button>
-            </Link>
+            {(userId == id) 
+                ? ( <Link 
+                        to="/profile-update"
+                        className="no-underline"
+                    >
+                        <button 
+                            className="bg-primary hover:bg-h-primary text-white px-4 py-1 cursor-pointer rounded-md text-sm flex items-center"
+                        >
+                            <EditIcon className="h-4 w-4 mr-1" /> Update
+                        </button>
+                    </Link>)
+                : ( <div
+                        className={`flex items-center justify-center gap-2 w-32 cursor-pointer lg:border-solid lg:border h-12 rounded-full p-1 transition-all duration-300 
+                        ${!isOwnProfile
+                        ? (`${
+                            isSubscribed
+                                ? "text-slate-800 bg-white lg:border-zinc-400 hover:bg-gray-100 hover:scale-105"
+                                : "text-white bg-primary lg:border-zinc-200 hover:bg-primary-dark hover:scale-105"
+                            }`)
+                        : `bg-[#cccccc] cursor-not-allowed`
+                        } `}
+                        onClick={() => handleSubscribe(userId)}
+                    >
+                    <GroupAddIcon />
+                    <span
+                      className={`text-sm 
+                        ${isOwnProfile 
+                          ? `text-slate-800` : 
+                          `${
+                            isSubscribed ? "text-slate-800" : "text-white"
+                          }`}
+                        `}
+                    >
+                      {isSubscribed ? "Unsubscribe" : "Subscribe"}
+                    </span>
+                  </div>)
+            }
+            
         </div>
       </div>
 

@@ -1,5 +1,5 @@
 import express from "express";
-import { signUp, signIn, setupProfile, getuserById, getProfilePicAndChannelNameStatus, fetchSubscriptions } from "../controller/auth.controller";
+import { signUp, signIn, setupProfile, getuserById, getProfilePicAndChannelNameStatus, fetchSubscriptions, countSubscribers } from "../controller/auth.controller";
 import asyncHandler from "../utils/asyncHandler";
 import { validate } from "../middleware/validator.middleware";
 import { setupProfileSchema, signInSchema, signUpSchema } from "../validators/zod.schema";
@@ -17,9 +17,11 @@ router.post("/signin",validate(signInSchema), asyncHandler(signIn))
 
 router.get("/profile-info", authenticate, asyncHandler(getProfilePicAndChannelNameStatus))
 
-router.get("/user", authenticate, asyncHandler(getuserById))
+router.get("/profile/:userId", authenticate, asyncHandler(getuserById))
 
 router.get("/:userId", asyncHandler(fetchSubscriptions))
+
+router.get("/subscribers/count", authenticate, asyncHandler(countSubscribers))
 
 router.post("/subscribe", authenticate, asyncHandler(subscribeToChannel))
 

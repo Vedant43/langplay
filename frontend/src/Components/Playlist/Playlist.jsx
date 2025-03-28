@@ -14,7 +14,7 @@ export const Playlist = ( {playlistId} ) => {
   const dispatch = useDispatch()
 
   useEffect(() => {
-    const existingPlaylist = playlists.find((p) => p.id === Number(playlistId));
+    const existingPlaylist = playlists.find((p) => p.id === Number(playlistId))
     console.log("Existing playlist ------------", existingPlaylist)
     dispatch(fetchPlaylistById(playlistId))
   }, [playlistId, playlists,])

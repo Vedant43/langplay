@@ -136,7 +136,8 @@ export const getProfilePicAndChannelNameStatus = async (req: Request, res: Respo
         id: true,
         profilePicture:true,
         channelName:true,
-        username:true
+        username:true,
+        subscribers: true
       }
     }
   )
@@ -204,8 +205,8 @@ export const setupProfile = async (req: Request, res: Response) => {
 }
 
 export const getuserById = async (req: Request, res: Response) => {
-  const userId = (req as AuthRequest).userId
-
+  // const userId = (req as AuthRequest).userId
+  const userId = parseInt(req.params.userId, 10)
   // check if any data you want to hide from other user such as email, playlists to implement this pass id from parameter, and check if userId and and id from param are same 
 
   const user = await prisma.user.findUnique({
@@ -224,9 +225,9 @@ export const getuserById = async (req: Request, res: Response) => {
       comments: true,
       community: true,
       playList: true,
-      videos: true,
       subscribedTo: true,
       subscribers: true,
+      videos: true,
     }
   })
 
@@ -262,6 +263,18 @@ export const fetchSubscriptions = async (req: Request, res: Response) => {
   })
 
   return new ApiResponse(200, "Fetched subscriptions", subscriptions).send(res)
+}
+
+export const countSubscribers = async (req: Request, res: Response) => {
+  const userId = (req as AuthRequest).userId
+
+  const countSubscribers = await prisma.channelEngagement.count({
+    where:{
+      channelId: userId
+    }
+  })
+console.log("In count subscriber-----------------")
+  return new ApiResponse(200, "Fetched number of subscribers", countSubscribers).send(res)
 }
 
 export const subscribeToChannel = async (req: Request, res: Response) => {

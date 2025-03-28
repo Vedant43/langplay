@@ -19,7 +19,7 @@ const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
   return err.handle(res)
 }
 
-export default errorHandler;
+export default errorHandler
 
 // import { Request, Response, NextFunction } from "express"; does not work
 // Explicitly type the error handler as ErrorRequestHandler

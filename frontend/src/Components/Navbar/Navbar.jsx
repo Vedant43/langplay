@@ -5,24 +5,24 @@ import MovieIcon from '@mui/icons-material/Movie'
 import SearchIcon from '@mui/icons-material/Search'
 import Button from '@mui/material/Button'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
+import PermIdentityIcon from '@mui/icons-material/PermIdentity'
+import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
+import LogoutIcon from '@mui/icons-material/Logout'
 import DensitySmallIcon from '@mui/icons-material/DensitySmall'
 import { Link } from "react-router-dom"
 import { useEffect, useState } from "react"
 import VideoCallIcon from '@mui/icons-material/VideoCall';
 import avatar from "../../assets/default-avatar.jpg"
 import { logout } from "../redux/features/authSlice"
+import { IconButton } from "@mui/material"
 
 export const Navbar = ({toggleSidebar}) => {
 
-    // useEffect(()=> {
-    //     if (localStorage.getItem("accessToken")) {
-    //         setAuthStatus(true)
-    //         console.log("navbar")
-    //     }
-    // },[])
+    const [ profileModal, setProfileModal ] = useState(false)
 
+    const navigate = useNavigate()
     const dispatch = useDispatch()
-    const { authStatus, profilePicture } = useSelector((state) => state.auth)
+    const { authStatus, profilePicture, id } = useSelector((state) => state.auth)
 
     return (
         <header 
@@ -101,29 +101,79 @@ export const Navbar = ({toggleSidebar}) => {
                             <div 
                             className="flex items-center gap-4"
                         >                        
-                            <div 
-                                className="hidden lg:block"
-                            >
-                                <Link to={"/upload-video"} > 
-                                    <VideoCallIcon 
-                                        sx={{
-                                            color:"#616494",
-                                            fontSize:34
-                                        }}
-                                    />
-                                </Link>
-                            </div>
 
                             <div 
-                                className="hidden lg:block"
+                                className="hidden lg:block lg:relative"
+                                onMouseEnter={() => {
+                                    setProfileModal(true)
+                                }}
+                                onMouseLeave={(e) => {
+                                    // Check if the mouse left towards the modal or somewhere else
+                                    setTimeout(() => {
+                                        if (!document.querySelector('.profile-modal:hover')) {
+                                          setProfileModal(false);
+                                        }
+                                      }, 100);
+                                }}
                             >
-                                <Link
-                                    to={"/profile"}
+
+                                <div
+                                    className="relative"
                                 >
-                                    <img className="w-10 h-10 rounded-full" src={profilePicture} alt="Rounded avatar" />
-                                </Link>
+                                    <img 
+                                        className="w-10 h-10 rounded-full object-cover" 
+                                        src={profilePicture} 
+                                        alt="Rounded avatar" 
+                                    />
+                                    {profileModal && (
+                                        <div 
+                                            className={`absolute profile-modal right-0 rounded-lg flex flex-col gap-2 p-2 w-48 bg-zinc-100`}
+                                            onMouseEnter={() => setProfileModal(true)}
+                                            onMouseLeave={() => setProfileModal(false)}
+                                        >
+                                            <div 
+                                                className="flex items-center justify-start gap-2 cursor-pointer mt-2"
+                                                onClick={() => {
+                                                    navigate(`/profile/${id}`)
+                                                    setProfileModal(false)
+                                                }}
+                                            >
+                                                <PermIdentityIcon 
+                                                    className="text-primary"
+                                                />
+                                                Profile
+                                            </div>
+                                            <div
+                                                className="flex items-center justify-start cursor-pointer gap-2"
+                                                onClick={() => {
+                                                    navigate("/dashboard")
+                                                    setProfileModal(false)
+                                                }}
+                                            >
+                                                <AssessmentOutlinedIcon 
+                                                    className="text-primary"
+                                                />
+                                                Dashboard
+                                            </div>
+                                            <div
+                                                className="flex items-center justify-start cursor-pointer gap-2"
+                                                onClick={() => {
+                                                    dispatch(logout())
+                                                    setProfileModal(false)
+                                                }}
+                                            >
+                                                <LogoutIcon 
+                                                    className="text-primary"
+                                                />
+                                                logout    
+                                            </div>
+                                            
+                                        </div>
+                                    )}
+                                </div>
+                                {/* </Link> */}
                             </div>
-                            <button onClick={() => dispatch(logout())}>Logout</button>
+                            {/* <button onClick={() => dispatch(logout())}>Logout</button> */}
                         </div>
                         ):
                         (

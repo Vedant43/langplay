@@ -37,9 +37,14 @@ const dislikeVideo = async ( videoId ) => {
 
 const uploadVideo = async ( data ) => {
     const response = await apiClient.post("/video/upload", data)
+    return response.data.message
+}
+
+// router.delete("/:id", authenticate, asyncHandler(deleteVideoById))
+const deleteVideo = async (videoId) => {
+    const response = await apiClient.delete(`/video/${videoId}`)
     console.log(response)
     return response.data.message
-    
 }
 
 export default {
@@ -50,5 +55,6 @@ export default {
     fetchAllVideos,
     increaseViewCount,
     fetchAllVideosByUser,
-    uploadVideo
+    uploadVideo,
+    deleteVideo
 }

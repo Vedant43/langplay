@@ -132,6 +132,7 @@ export const deleteVideoById = async (req: Request, res: Response) => {
     const videoId = parseInt(req.params.id, 10)
     const userId = (req as AuthRequest).userId
 
+    console.log(videoId)
     await prisma.video.delete({
         where: {
             id: videoId,
@@ -145,8 +146,7 @@ export const deleteVideoById = async (req: Request, res: Response) => {
 export const getVideosByUser = async (req: Request, res: Response) => {
     // const userId = parseInt(req.params.userId, 10)
     const userId = (req as AuthRequest).userId
-    console.log("user -------------")
-    console.log(userId)
+    
     // need to check if user wants his own videos or other user's videos
     const videos = await prisma.video.findMany({
         where: {
@@ -162,10 +162,10 @@ export const getVideosByUser = async (req: Request, res: Response) => {
             userId: true,
             views: true,
             createdAt: true,
+            videoEngagement: true,
         }
     })
-    console.log("videos by user -------------")
-    console.log(videos)
+
     return new ApiResponse(200, "Videos fetched successfully", videos).send(res)
 }
 

@@ -3,11 +3,12 @@ import { createSlice } from "@reduxjs/toolkit"
 export const authSlice = createSlice({
     name: 'auth',
     initialState: {
+        id:null,
         authStatus: !!localStorage.getItem("accessToken"),
         profilePicture: null,
         channelName: '',
         username: '',
-        id:null
+        subscribers: null
     },
     reducers: {
         setUser: (state,action) => {
@@ -25,6 +26,9 @@ export const authSlice = createSlice({
             state.channelName = ""
             localStorage.removeItem("accessToken")
         },
+        setSubscribers: (state, action) => {
+            state.subscribers = action.payload
+        }
     }
 })
 
