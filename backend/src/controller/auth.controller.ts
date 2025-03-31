@@ -6,8 +6,7 @@ import bcrypt from "bcryptjs";
 import { generateAccessToken, generateRefreshToken, verifyToken } from "../utils/tokenService";
 import { uploadImageOnCloudinary } from "../utils/cloudinary";
 import { AuthRequest } from "../utils/types";
-
-const prisma = new PrismaClient();
+import { prisma } from "../prisma"
 
 interface MulterFileFields {
   profilePicture: Express.Multer.File[],

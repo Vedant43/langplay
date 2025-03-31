@@ -36,14 +36,16 @@ model Video {
   videoUrl        String
   thumbnailUrl    String
   views           Int               @default(0)
-  isPublished     Boolean           @default(false)
+  isPublished     Boolean           @default(false) 
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
-  userId          Int
-  videoPublicId   String
+  userId          Int?
+  videoPublicId   String?
+  language        Language          @default(ENGLISH)
+  source          String            @default("user")
   comments        Comment[]
   Playlist_videos Playlist_videos[]
-  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
   videoEngagement VideoEngagement[]
 }
 
@@ -138,6 +140,16 @@ enum PlaylistType {
   WATCH_LATER
   HISTORY
   USER_CREATED 
+}
+
+enum Language {
+  ENGLISH
+  HINDI
+  JAPANESE
+  FRENCH
+  SPANISH
+  CHINESE
+  GERMAN
 }
 
 // npx prisma db push to update schema

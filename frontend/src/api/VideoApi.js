@@ -1,7 +1,7 @@
 import { apiClient } from "./client"
 
 const fetchAllVideos = async () => {
-    const response = await apiClient.get("/video/")
+    const response = await apiClient.get("/video/user-uploaded")
     return response.data.data
 }
 

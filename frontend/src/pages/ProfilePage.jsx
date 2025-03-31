@@ -60,8 +60,6 @@ export const ProfilePage = () => {
 
         UserApi.fetchSubscriptions(userData.id)
         .then(response => {
-            console.log("Subscriptione----------------")
-            console.log(response)
             setSubscriptions(response)
         })
         .catch(error => {
@@ -111,12 +109,21 @@ export const ProfilePage = () => {
             {(userId == id) 
                 ? ( <Link 
                         to="/profile-update"
+                        state={{ 
+                            channelName: userData.channelName,
+                            description: userData.description,
+                            profilePicture: userData.profilePicture,
+                            coverPicture: userData.coverPicture,
+                        }}
                         className="no-underline"
                     >
                         <button 
                             className="bg-primary hover:bg-h-primary text-white px-4 py-1 cursor-pointer rounded-md text-sm flex items-center"
                         >
-                            <EditIcon className="h-4 w-4 mr-1" /> Update
+                            <EditIcon 
+                                className="h-4 w-4 mr-1" 
+                            /> 
+                            Update
                         </button>
                     </Link>)
                 : ( <div

@@ -3,14 +3,8 @@ import { Request, Response } from "express"
 import { AuthRequest } from "../utils/types"
 import ApiResponse from "../utils/ApiResponse"
 import ApiError from "../utils/ApiError"
+import { prisma } from "../prisma"
 
-const prisma = new PrismaClient()
-// type      PlaylistType?     @default(USER_CREATED)
-//   createdAt DateTime          @default(now())
-//   updatedAt DateTime          @updatedAt
-//   userId    Int
-//   user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-//   videos    Playlist_videos[]
 export const getPlaylistsByUserId = async (req: Request, res: Response) => {
     const { userId } = (req as AuthRequest)
     

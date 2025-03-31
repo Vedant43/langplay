@@ -3,7 +3,7 @@ import { uploadVideoWithThumbnail } from "../middleware/multer.middleware"
 import { validate } from "../middleware/validator.middleware"
 import { commentSchema, videoUploadSchema } from "../validators/zod.schema"
 import asyncHandler from "../utils/asyncHandler"
-import { deleteVideoById, getAllVideos, getVideoById, getVideosByUser, uploadVideo, addComment, deleteCommentById, likeVideo, dislikeVideo, getLikedVideos, increaseViewCount } from "../controller/video.controller"
+import { deleteVideoById, getAllUserUploadedVideos, getVideoById, getVideosByUser, uploadVideo, addComment, deleteCommentById, likeVideo, dislikeVideo, getLikedVideos, increaseViewCount } from "../controller/video.controller"
 import { authenticate } from "../middleware/auth.middleware"
 
 const router = Router()
@@ -12,13 +12,13 @@ router.post("/upload", authenticate, uploadVideoWithThumbnail, validate(videoUpl
 
 router.get("/:userId/videos", asyncHandler(getVideosByUser)) 
 
-router.get("/", asyncHandler(getAllVideos))
+router.get("/user-uploaded", asyncHandler(getAllUserUploadedVideos))
 
 router.get("/liked-videos", authenticate, asyncHandler(getLikedVideos))
 
-router.get("/:id", asyncHandler(getVideoById)) //
+router.get("/:id", asyncHandler(getVideoById)) 
 
-router.post("/:id/view", asyncHandler(increaseViewCount)) //
+router.post("/:id/view", asyncHandler(increaseViewCount)) 
 
 router.post("/:id/like", authenticate, asyncHandler(likeVideo))
 

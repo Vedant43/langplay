@@ -11,6 +11,7 @@ export const authenticate : RequestHandler = (req: Request, res: Response, next:
     }
 
     const token = authHeader.split(" ")[1]
+    
     try {
         const decoded = verifyToken(token)
         if(!decoded){

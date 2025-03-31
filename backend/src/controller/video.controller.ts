@@ -2,21 +2,19 @@ import { NextFunction, Request, Response } from "express";
 import { v2 as cloudinary} from 'cloudinary'
 import { uploadImageOnCloudinary, uploadVideoOnCloudinary } from "../utils/cloudinary";
 import { AuthRequest } from "../utils/types";
-import { Prisma, PrismaClient } from "@prisma/client";
+import { Language, Prisma, PrismaClient } from "@prisma/client";
 import ApiResponse from "../utils/ApiResponse";
 import ApiError from "../utils/ApiError";
+import { prisma } from "../prisma"
 
 interface MulterFileFields {
     video: Express.Multer.File[]
     thumbnail: Express.Multer.File[]
 }
 
-const prisma = new PrismaClient();
-
 export const uploadVideo = async (req: Request, res: Response) => {
-    
     const authReq = req as AuthRequest
-    const { title,description } = authReq.body as { title: string; description: string }
+    const { title,description, language } = authReq.body as { title: string; description: string; language:Language  }
     const { userId } = authReq
     const files = req.files as MulterFileFields | undefined
 
@@ -60,6 +58,7 @@ export const uploadVideo = async (req: Request, res: Response) => {
             videoUrl: videoResponse?.secure_url,
             videoPublicId: videoResponse?.public_id,
             thumbnailUrl: thumbnailUrl || '',
+            language,
             userId
         }
     })
@@ -203,7 +202,13 @@ export const getLikedVideos = async (req: Request, res: Response) => {
     return new ApiResponse(200, "Fetched liked videos...", likedVideos).send(res)      
 }
 
-export const getAllVideos = async (req: Request, res: Response) => {
+export const getYoutubeVideos = async (req: Request, res: Response) => {
+    const { language } = req.query
+
+    if(!language) throw new ApiError(400, "Language is required")
+}
+
+export const getAllUserUploadedVideos = async (req: Request, res: Response) => {
     const videos = await prisma.video.findMany({
         select:{
             id: true,

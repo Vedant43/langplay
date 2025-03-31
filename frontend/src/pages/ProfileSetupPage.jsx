@@ -15,9 +15,14 @@ import Cropper from "react-easy-crop";
 import { useForm } from "react-hook-form";
 import UserApi from "../api/UserApi";
 import toast from "react-hot-toast";
-import { Link } from "react-router-dom"
+import { Link, useLocation } from "react-router-dom"
 
 export function SetupProfilePage() {
+
+  const location = useLocation()
+  // console.log("State -", location)
+  const { username, channelName, profilePicture, coverPicture } = location.state || {}
+  console.log("Cover picture-----", coverPicture)
   const { register, handleSubmit, setValue, watch } = useForm({
     defaultValues: {
       channelName: "",
@@ -27,7 +32,7 @@ export function SetupProfilePage() {
     },
   });
 
-  const [coverImage, setCoverImage] = useState(null);
+  const [coverImage, setCoverImage] = useState(coverPicture ?? null);
   const [profileImage, setProfileImage] = useState(null);
   const [croppingImage, setCroppingImage] = useState(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -81,9 +86,10 @@ export function SetupProfilePage() {
     >
       {/* Cover Image Section */}
       <div className="relative">
-        {coverImage ? (
+        {(coverImage) ? (
           <img
-            src={URL.createObjectURL(coverImage)}
+            src={coverPicture ?? URL.createObjectURL(coverImage)}
+            // src={coverImage}
             alt="Cover"
             className="w-full h-48 object-cover rounded-lg"
           />
