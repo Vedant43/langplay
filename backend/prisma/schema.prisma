@@ -16,6 +16,8 @@ model User {
   coverPicture       String?
   description        String?
   profilePicture     String?
+  languageSkillLevel String              @default("Beginner")
+  languageToLearn    Language             
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
   subscribers        ChannelEngagement[] @relation("subscribers")
@@ -29,8 +31,18 @@ model User {
   videoEngagement    VideoEngagement[]
 }
 
+model YouTubeVideo {
+  id           String  @id @unique
+  title        String
+  videoUrl     String
+  thumbnailUrl String
+  language     String
+  createdAt    DateTime @default(now())
+}
+
 model Video {
   id              Int               @id @default(autoincrement())
+  sourceId        String?           @unique
   title           String            @unique
   description     String?
   videoUrl        String
@@ -42,7 +54,7 @@ model Video {
   userId          Int?
   videoPublicId   String?
   language        Language          @default(ENGLISH)
-  source          String            @default("user")
+  source          VideoType         @default(USER_UPLOADED)
   comments        Comment[]
   Playlist_videos Playlist_videos[]
   user            User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -61,22 +73,29 @@ model VideoEngagement {
 
 model Playlist {
   id        Int               @id @default(autoincrement())
+  youtubePlaylistId String?   @unique
   name      String
   type      PlaylistType?     @default(USER_CREATED)
+  thumbnailUrl String?
+  count     Int?
+  language  Language
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
-  userId    Int
-  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int?
+  user      User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
   videos    Playlist_videos[]
 }
 
 model Playlist_videos {
-  videoId   Int
+  id          Int    @id @default(autoincrement())
+  videoId     Int?
+  youtubeVideoId String?
   playlistId Int
   playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
-  Video      Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  Video      Video?    @relation(fields: [videoId], references: [id], onDelete: Cascade)
 
-  @@unique([playlistId, videoId])
+  @@unique([playlistId, videoId])        
+  @@unique([playlistId, youtubeVideoId])
 }
 
 model Community {
@@ -140,6 +159,7 @@ enum PlaylistType {
   WATCH_LATER
   HISTORY
   USER_CREATED 
+  YOUTUBE
 }
 
 enum Language {
@@ -150,6 +170,11 @@ enum Language {
   SPANISH
   CHINESE
   GERMAN
+}
+
+enum VideoType {
+  USER_UPLOADED
+  YOUTUBE
 }
 
 // npx prisma db push to update schema
