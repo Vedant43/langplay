@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import avatar from "../src/assets/default-avatar.jpg";
 import { Toaster } from "react-hot-toast";
 import { Layout } from "./Components/layout/Layout";
-import { HomePage } from "./pages/HomePage.jsx";
+import {HomeFeed} from "./pages/HomePage.jsx";
 import { SignUpPage } from "./pages/SignUpPage.jsx";
 import { ProfilePage } from "./pages/ProfilePage.jsx";
 import { SignInPage } from "./pages/SignInPage.jsx";
@@ -88,7 +88,7 @@ function App() {
           />
           <Routes>
             <Route element={<Layout />}>
-              <Route path="/" element={<HomePage />} />
+              <Route path="/" element={<HomeFeed />} />
               <Route path="/signup" element={<SignUpPage />} />
               <Route path="/signin" element={<SignInPage />} />
               <Route path="/video/:videoId" element={<VideoPage />} />

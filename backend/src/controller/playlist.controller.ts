@@ -91,13 +91,15 @@ export const isVideoInPlaylist = async (req: Request, res: Response) => {
 export const createPlaylist = async (req: Request, res: Response) => {
     const { name } = req.body
     const { type } = req.body
+    const { language } = req.body
     const userId = (req as AuthRequest).userId
 
     const playlistExists = await prisma.playlist.findFirst({
         where: {
             name,
             userId,
-            type
+            type,
+            language
         }
     })
 
@@ -109,7 +111,8 @@ export const createPlaylist = async (req: Request, res: Response) => {
         data: {
             name,
             userId,
-            type
+            type,
+            language
         }
     })
 

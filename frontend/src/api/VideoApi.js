@@ -5,9 +5,18 @@ const fetchAllVideos = async () => {
     return response.data.data
 }
 
-const fetchAllVideosByUser = async () => {
-    const response = await apiClient.get("/video/:userId/videos")
-    return response.data.data
+// const fetchAllVideosByUser = async () => {
+//     const response = await apiClient.get("/video/:userId/videos")
+//     return response.data.data
+// }
+
+const fetchHomeFeed = async () => {
+    try {
+        const response = await apiClient.get("/video/home-feed")
+        return response.data.data
+    } catch (error) {
+        console.log("Error in fetching home feed ", error)
+    }
 }
 
 const fetchVideo = async ( videoId ) => {
@@ -54,7 +63,7 @@ export default {
     dislikeVideo,
     fetchAllVideos,
     increaseViewCount,
-    fetchAllVideosByUser,
+    fetchHomeFeed,
     uploadVideo,
     deleteVideo
 }

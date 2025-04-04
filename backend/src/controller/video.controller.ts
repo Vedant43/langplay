@@ -6,6 +6,11 @@ import { Language, Prisma, PrismaClient } from "@prisma/client";
 import ApiResponse from "../utils/ApiResponse";
 import ApiError from "../utils/ApiError";
 import { prisma } from "../prisma"
+import { getUserUploadedVideos } from "../services/videoService";
+import { storePlaylistsInDB } from "../services/youtubeService";
+import { getLanguageEnum } from "../utils/language";
+import { storeVideosInDb } from "../services/youtubeService";
+// import { getYouTubeVideos } from "../services/youtubeService";
 
 interface MulterFileFields {
     video: Express.Multer.File[]
@@ -202,36 +207,47 @@ export const getLikedVideos = async (req: Request, res: Response) => {
     return new ApiResponse(200, "Fetched liked videos...", likedVideos).send(res)      
 }
 
-export const getYoutubeVideos = async (req: Request, res: Response) => {
-    const { language } = req.query
+// export const getYoutubeVideos = async (req: Request, res: Response) => {
+//     const { language } = req.query
 
-    if(!language) throw new ApiError(400, "Language is required")
-}
+//     if(!language) throw new ApiError(400, "Language is required")
+// }
 
-export const getAllUserUploadedVideos = async (req: Request, res: Response) => {
-    const videos = await prisma.video.findMany({
-        select:{
-            id: true,
-            title: true,
-            description: true,
-            videoUrl: true,
-            videoPublicId: true,
-            thumbnailUrl: true,
-            userId: true,
-            views: true,
-            createdAt: true,
-            user: {
-                select: {
-                    id: true,
-                    username: true,
-                    profilePicture: true,
-                    channelName: true
-                }
-            }
-        }
-    })
+// export const getAllUserUploadedVideos = async (req: Request, res: Response) => {
+//     const videos = await prisma.video.findMany({
+//         select:{
+//             id: true,
+//             title: true,
+//             description: true,
+//             videoUrl: true,
+//             videoPublicId: true,
+//             thumbnailUrl: true,
+//             userId: true,
+//             views: true,
+//             createdAt: true,
+//             user: {
+//                 select: {
+//                     id: true,
+//                     username: true,
+//                     profilePicture: true,
+//                     channelName: true
+//                 }
+//             }
+//         }
+//     })
 
-    return new ApiResponse(200, "Fetched all videos...", videos).send(res)
+//     return new ApiResponse(200, "Fetched all videos...", videos).send(res)
+// }
+
+export const getHomeFeed = async (req: Request, res: Response) => {
+    try {
+        const userId = (req as AuthRequest).userId
+        const homeFeed = await getBeginnerHomeFeed(userId)
+        return new ApiResponse(200, "Fetched homefeed", homeFeed).send(res)
+    } catch (error) {
+        console.log("error in fetching home feed ", error)
+        throw new ApiError(400, "Error in fetching home feed", error)
+    }
 }
 
 export const likeVideo = async (req: Request, res: Response) => {
@@ -399,3 +415,78 @@ const getDislikeCount = async (videoId: number) => {
         }
     })
 }
+
+const getBeginnerHomeFeed = async (userId: number) => {
+    
+    const user = await prisma.user.findUnique({
+      where: { 
+        id: userId 
+      },
+      select: { 
+        languageToLearn: true, 
+        languageSkillLevel: true 
+      },
+    })
+
+    if (!user || !user.languageToLearn) throw new ApiError(400,"Invalid user data")
+    if (user.languageSkillLevel !== "Beginner") return []
+
+    const language = getLanguageEnum(user.languageToLearn) 
+    if (!language) return
+
+    let storedPlaylists: any[] = []
+
+    const youtubePlaylists = await prisma.playlist.findMany({
+      where: { 
+        language, 
+        type: "YOUTUBE"
+      },
+      take:3,
+      include: {
+        _count: {
+          select: {
+            videos: true,
+          },
+        },
+      },
+    })
+
+    const uploadedPlaylists = await prisma.playlist.findMany({
+        where: { 
+          language, 
+          type: "USER_CREATED"
+        },
+        take:3
+    })
+
+    storedPlaylists = storedPlaylists.concat(uploadedPlaylists, youtubePlaylists)
+
+    if (youtubePlaylists.length === 0) {
+      const fetchedYoutubePlaylists = await storePlaylistsInDB(user.languageToLearn)
+      storedPlaylists = storedPlaylists.concat(fetchedYoutubePlaylists)
+      console.log("YT api called")
+    }
+
+    let storedVideos: any[] = []
+
+    const youtubeVideos = await prisma.video.findMany({
+        where:{
+            source: "YOUTUBE",
+            language: user.languageToLearn
+        },
+        take: 3
+    })
+
+    const userUploadedVideos = await getUserUploadedVideos(user.languageToLearn, 3)
+
+    storedVideos = storedVideos.concat(userUploadedVideos, youtubeVideos)
+
+    if(youtubeVideos.length === 0){
+        const fetchedYoutubeVideos = await storeVideosInDb(user.languageToLearn)
+        console.log("YT api called")
+        storedVideos = storedVideos.concat(fetchedYoutubeVideos)
+    }
+  
+    return { storedPlaylists, storedVideos }
+}
+  

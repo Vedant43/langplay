@@ -7,6 +7,7 @@ import { generateAccessToken, generateRefreshToken, verifyToken } from "../utils
 import { uploadImageOnCloudinary } from "../utils/cloudinary";
 import { AuthRequest } from "../utils/types";
 import { prisma } from "../prisma"
+import { getLanguageEnum } from "../utils/language";
 
 interface MulterFileFields {
   profilePicture: Express.Multer.File[],
@@ -14,7 +15,7 @@ interface MulterFileFields {
 }
 
 export const signUp = async (req: Request, res: Response) => {
-    const { username, email, password } = req.body
+    const { username, email, password, languageToLearn } = req.body
 
     // const files = req.files as { [fieldname: string]: Express.Multer.File[] }
     // const profilePicture = files?.profilePicture?.[0]?.path || null
@@ -41,30 +42,14 @@ export const signUp = async (req: Request, res: Response) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // let profilePictureUrl: string | null=null
-    // let coverPictureUrl: string | null=null
-
-    // if (profilePicture) {
-    //       const uploadedProfile = await uploadImageOnCloudinary(profilePicture, username);
-    //       profilePictureUrl = uploadedProfile.secure_url;
-    //       console.log(profilePictureUrl)
-    // }
-  
-    // if (coverPicture) {
-    //   try {
-    //       const uploadedCover = await uploadImageOnCloudinary(coverPicture, username);
-    //       coverPictureUrl = uploadedCover.secure_url;
-    //   } catch (error) {
-    //       throw new ApiError(500, "Cover picture upload failed");
-    //   }
-    // }
-
+    const language = getLanguageEnum(languageToLearn)
+    if (!language) return
     const newUser = await prisma.user.create({
       data: {
         username,
         email,
         password: hashedPassword,
+        languageToLearn: language
       },
     });
 

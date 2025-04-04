@@ -1,98 +1,69 @@
-import { useSelector } from "react-redux"
-import { Container } from "../Components/container/Container"
-import { VideoCard } from "../Components/Video Card/VideoCard"
-import { useEffect, useState } from "react"
-import VideoApi from "../api/VideoApi"
-// import avatar from "../src/assets/default-avatar.jpg";
-import avatar from "../assets/default-avatar.jpg"
-export const HomePage = () => {
+import { useEffect, useState } from "react";
+import { PlaylistCard } from "../Components/Playlist/PlaylistCard"
+import VideoApi from "../api/VideoApi";
 
-    // const videos = [
-    //         {
-    //             thumbnail: "https://source.unsplash.com/400x250/?technology",
-    //             title: "Mastering React in 2024: Full Guide",
-    //             channelName: "CodeWithMe",
-    //             views: "1.2M",
-    //             duration: "12:45"
-    //         },
-    //         {
-    //             thumbnail: "https://source.unsplash.com/400x250/?programming",
-    //             title: "Tailwind CSS Crash Course",
-    //             channelName: "DesignDev",
-    //             views: "870K",
-    //             duration: "08:30"
-    //         },
-    //         {
-    //             thumbnail: "https://source.unsplash.com/400x250/?coding",
-    //             title: "Building a Full-Stack App with MERN",
-    //             channelName: "DevJourney",
-    //             views: "640K",
-    //             duration: "15:20"
-    //         },
-    //         {
-    //             thumbnail: "https://source.unsplash.com/400x250/?developer",
-    //             title: "Understanding JavaScript Closures",
-    //             channelName: "JS Ninja",
-    //             views: "530K",
-    //             duration: "07:10"
-    //         },
-    //         {
-    //             thumbnail: "https://source.unsplash.com/400x250/?video",
-    //             title: "How to Deploy React Apps on Vercel",
-    //             channelName: "Code Simplified",
-    //             views: "320K",
-    //             duration: "06:55"
-    //         },
-    //         {
-    //             thumbnail: "https://source.unsplash.com/400x250/?education",
-    //             title: "Best AI Tools for Developers",
-    //             channelName: "TechWorld",
-    //             views: "1.8M",
-    //             duration: "14:05"
-    //         }
-    // ]  
+export const HomeFeed = () => {
+  const [videos, setVideos] = useState([]);
+  const [userCreatedPlaylists, setUserCreatedPlaylists] = useState([]);
+  const [youtubePlaylists, setYoutubePlaylists] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-    const [ videos, setVideos ] = useState([])
-    const [ searchQuery, setSearchQuery ] = useState("")
+  useEffect(() => {
+    const fetchFeed = async () => {
+      try {
+        const response = await VideoApi.fetchHomeFeed();
+        console.log("Home feed:", response);
+        setVideos(response.storedVideos || []);
 
-    useEffect( () => {
-        VideoApi.fetchAllVideos()
-        .then( videos => {
-            setVideos(videos)
-        })
-    }, [])
+        const formattedUserPlaylists = (response.storedPlaylists || [])
+          .filter((playlist) => playlist.type === "USER_CREATED")
+          .map((playlist) => ({
+            ...playlist,
+            count: playlist._count?.videos || 0,
+          }));
 
-    console.log(videos)
+        const formattedYoutubePlaylists = (response.storedPlaylists || [])
+          .filter((playlist) => playlist.type === "YOUTUBE")
+          .map((playlist) => ({
+            ...playlist,
+            count: playlist._count?.videos || 0,
+          }));
 
-    const { authStatus, channelName, id } = useSelector((state) => state.auth)
+        setUserCreatedPlaylists(formattedUserPlaylists);
+        setYoutubePlaylists(formattedYoutubePlaylists);
+      } catch (error) {
+        console.error("Error fetching feed:", error.response?.data || error.message);
+        setError("Failed to load feed. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFeed();
+  }, []);
 
-    return (
-        <Container>
+  if (loading) return <p className="text-center p-4">Loading...</p>;
+  if (error) return <p className="text-center p-4 text-red-500">{error}</p>;
 
-            {channelName === null ? 
-                <div className="flex w-full bg-red-100">
-                    <p className="bg-red-100 text-red-800 mx-auto">!Update channel name!</p>
-                </div> 
-                :
-                ''
-            }
-            {/* // without channelname user cant upload videos */}
-            <div className="grid lg:grid-cols-3 p-4 gap-4">
-                {videos.map((video, id) => (
-                    <VideoCard 
-                        key={id}
-                        id={video.id}
-                        thumbnail = {video.thumbnailUrl}
-                        title = {video.title}
-                        channelName = {video.user.username}
-                        userProfilePicture = {video.user.profilePicture ?? avatar}
-                        views = {video.views}
-                        duration = {video.duration}
-                        createdAt={video.createdAt}
-                    />
-                ))}
-            </div>
+  return (
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4">Recommended Playlists</h1>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 h-56 gap-4">
+        {/* {userCreatedPlaylists.map((playlist) => (
+          <PlaylistCard key={playlist.id} {...playlist} />
+        ))} */}
+        {youtubePlaylists.map((playlist) => (
+          // {name, thumbnail, count, time, id}
+          <PlaylistCard key={playlist.id} name={playlist.name} thumbnail={playlist.thumbnailUrl} count={playlist.count} time={playlist.createdAt} id={playlist.id}/>
+        ))}
+      </div>
 
-        </Container>
-    )
-}
+      <h1 className="text-2xl font-bold mt-6 mb-4">Videos</h1>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {/* {videos.map((video) => (
+          <PlaylistCard key={video.id} {...video} />
+        ))} */}
+      </div>
+    </div>
+  );
+};

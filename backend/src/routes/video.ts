@@ -3,7 +3,7 @@ import { uploadVideoWithThumbnail } from "../middleware/multer.middleware"
 import { validate } from "../middleware/validator.middleware"
 import { commentSchema, videoUploadSchema } from "../validators/zod.schema"
 import asyncHandler from "../utils/asyncHandler"
-import { deleteVideoById, getAllUserUploadedVideos, getVideoById, getVideosByUser, uploadVideo, addComment, deleteCommentById, likeVideo, dislikeVideo, getLikedVideos, increaseViewCount } from "../controller/video.controller"
+import { deleteVideoById, getHomeFeed, getVideoById, getVideosByUser, uploadVideo, addComment, deleteCommentById, likeVideo, dislikeVideo, getLikedVideos, increaseViewCount } from "../controller/video.controller"
 import { authenticate } from "../middleware/auth.middleware"
 
 const router = Router()
@@ -12,7 +12,7 @@ router.post("/upload", authenticate, uploadVideoWithThumbnail, validate(videoUpl
 
 router.get("/:userId/videos", asyncHandler(getVideosByUser)) 
 
-router.get("/user-uploaded", asyncHandler(getAllUserUploadedVideos))
+router.get("/home-feed", authenticate, asyncHandler(getHomeFeed))
 
 router.get("/liked-videos", authenticate, asyncHandler(getLikedVideos))
 
