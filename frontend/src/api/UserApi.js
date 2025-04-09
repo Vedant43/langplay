@@ -12,9 +12,7 @@ const userSignIn = async (data) => {
 
 const userSignUp = async (data) => {
     try {
-        console.log("Before sign up api------", data)
         const response = await apiClient.post("user/signup", data, { NoAuth : true })
-        console.log("Recieved response ------------")
         return response.data.data
     } catch (error) {
         console.log("Error in sign up ", error)
@@ -27,14 +25,12 @@ const subscribe = async (channelId) => {
 }
 // router.post("/update-profile", authenticate, uploadProfileCover, validate(setupProfileSchema), asyncHandler(setupProfile))
 const updateProfile = async (data) => {
-    console.log({data})
     const response = await apiClient.post("user/update-profile",data)
     return response.data.data
 }
 
 const getUser = async (userId) => {
     const response = await apiClient.get(`user/profile/${userId}`)
-    console.log(response)
     return response.data.data
 }
 
