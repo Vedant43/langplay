@@ -16,11 +16,10 @@ interface MulterFileFields {
 
 export const signUp = async (req: Request, res: Response) => {
     const { username, email, password, languageToLearn } = req.body
-
+    console.log(req.body)
     // const files = req.files as { [fieldname: string]: Express.Multer.File[] }
     // const profilePicture = files?.profilePicture?.[0]?.path || null
     // const coverPicture = files?.coverPicture?.[0]?.path || null
-    
     const existingUsername = await prisma.user.findFirst({
       where: {
           username 
@@ -30,6 +29,7 @@ export const signUp = async (req: Request, res: Response) => {
     if (existingUsername) {
       throw new ApiError(400, "Username already exists");
     }
+    console.log("Reached in sign up controller---")
 
     const existingEmail = await prisma.user.findFirst({
       where: {
@@ -40,6 +40,7 @@ export const signUp = async (req: Request, res: Response) => {
     if (existingEmail) {
       throw new ApiError(400, "Email already exists");
     }
+    console.log("Reached in sign up controller 2---")
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const language = getLanguageEnum(languageToLearn)
@@ -52,6 +53,7 @@ export const signUp = async (req: Request, res: Response) => {
         languageToLearn: language
       },
     });
+    console.log("Reached in sign up controller---3")
 
     const accessToken = generateAccessToken({ userId: newUser.id, username:newUser.username })
     const refreshToken = generateRefreshToken({ userId: newUser.id, username:newUser.username })

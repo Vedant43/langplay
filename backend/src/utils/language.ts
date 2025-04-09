@@ -11,5 +11,5 @@ export const getLanguageEnum = (lang: string): Language | null => {
         german: Language.GERMAN,
     }
 
-    return languageMap[lang.toLowerCase()] || null
+    return languageMap[lang?.toLowerCase()] || null
 }

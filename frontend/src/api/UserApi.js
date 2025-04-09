@@ -11,8 +11,14 @@ const userSignIn = async (data) => {
 }
 
 const userSignUp = async (data) => {
-    const response = await apiClient.post("user/signup", data, { NoAuth : true })
-    return response.data.data
+    try {
+        console.log("Before sign up api------", data)
+        const response = await apiClient.post("user/signup", data, { NoAuth : true })
+        console.log("Recieved response ------------")
+        return response.data.data
+    } catch (error) {
+        console.log("Error in sign up ", error)
+    }
 }
 
 const subscribe = async (channelId) => {

@@ -189,7 +189,11 @@ export const storeVideosInDb = async (language: string) => {
             videoUrl: `https://www.youtube.com/watch?v=${video.sourceId}`,
             thumbnailUrl: video.thumbnailUrl,
             language: video.language,
-            source:"YOUTUBE"
+            source:"YOUTUBE",
+              // optional: placeholders for data you'll fill later
+            transcriptLang: "", // transcript in language to learn
+            transcriptNative: "", // transcript in native language if needed
+            quiz: undefined // or quiz: [] if it's a JSON array
           }
         })
       } catch (error) {

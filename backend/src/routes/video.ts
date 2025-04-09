@@ -18,7 +18,7 @@ router.get("/liked-videos", authenticate, asyncHandler(getLikedVideos))
 
 router.get("/:id", asyncHandler(getVideoById)) 
 
-router.post("/:id/view", asyncHandler(increaseViewCount)) 
+router.post("/:id/view", asyncHandler(increaseViewCount))
 
 router.post("/:id/like", authenticate, asyncHandler(likeVideo))
 

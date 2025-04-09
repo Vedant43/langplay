@@ -17,7 +17,8 @@ model User {
   description        String?
   profilePicture     String?
   languageSkillLevel String              @default("Beginner")
-  languageToLearn    Language             
+  languageToLearn    Language            @default(ENGLISH)
+  nativeLanguage     Language            @default(ENGLISH)
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
   subscribers        ChannelEngagement[] @relation("subscribers")
@@ -31,14 +32,14 @@ model User {
   videoEngagement    VideoEngagement[]
 }
 
-model YouTubeVideo {
-  id           String  @id @unique
-  title        String
-  videoUrl     String
-  thumbnailUrl String
-  language     String
-  createdAt    DateTime @default(now())
-}
+// model YouTubeVideo {
+//   id           String  @id @unique
+//   title        String
+//   videoUrl     String
+//   thumbnailUrl String
+//   language     String
+//   createdAt    DateTime @default(now())
+// }
 
 model Video {
   id              Int               @id @default(autoincrement())
@@ -53,6 +54,10 @@ model Video {
   updatedAt       DateTime          @updatedAt
   userId          Int?
   videoPublicId   String?
+  quiz            Json?                
+  transcriptLang   String?           // Transcript in the language to learn
+  transcriptNative String?           // Transcript translated to user native (optional)
+  quizGenerated    Boolean           @default(false)  // To avoid regen + API co
   language        Language          @default(ENGLISH)
   source          VideoType         @default(USER_UPLOADED)
   comments        Comment[]

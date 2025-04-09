@@ -3,6 +3,7 @@ import { v2 as cloudinary} from 'cloudinary'
 import { uploadImageOnCloudinary, uploadVideoOnCloudinary } from "../utils/cloudinary";
 import { AuthRequest } from "../utils/types";
 import { Language, Prisma, PrismaClient } from "@prisma/client";
+import axios from 'axios'
 import ApiResponse from "../utils/ApiResponse";
 import ApiError from "../utils/ApiError";
 import { prisma } from "../prisma"
@@ -110,6 +111,57 @@ export const getVideoById = async (req: Request, res: Response) => {
 
     if (!video) throw new ApiError(404, "Video not found")
 
+    // For quiz
+    if (!video.quiz || (Array.isArray(video.quiz) && video.quiz.length === 0)) {
+        console.log("Generating new quiz...");
+          
+        try {
+            const response = await axios.post("http://localhost:8000/generate-quiz/", {
+                transcript: video.transcriptLang,
+            });
+          
+            const generatedQuiz = response.data.quizzes
+          
+            // Save to DB
+            await prisma.video.update({
+                where: { 
+                    id: video.id 
+                },
+                data: {
+                  quiz: generatedQuiz, 
+                },
+            })
+          
+            video.quiz = generatedQuiz
+        } catch (err:any) {
+            console.error("Quiz generation failed:", err.response);
+        }
+    }
+
+    //For transcript
+    if (!video.transcriptLang || video.transcriptLang.length === 0) {
+        console.log("Transcript not found, generating...");
+      
+        try {
+            const { data } = await axios.post("http://localhost:8000/generate-transcribe/", {
+              videoUrl: video.videoUrl,
+            });
+          
+            await prisma.video.update({
+              where: { 
+                id: video.id 
+            },
+              data: {
+                transcriptLang: data.transcript,
+              },
+            });
+          
+            video.transcriptLang = data.transcript;
+        } catch (error:any) {
+            console.log("Error in transcript ", error.response)
+        }
+      }
+          
     return new ApiResponse(200, "Video fetched successfully", video).send(res)
 }
 
