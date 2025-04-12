@@ -118,21 +118,22 @@ def get_video_duration(audio_path: str) -> float:
 
 def generate_quiz_for_chunk(chunk: str):
     prompt = f"""
-    Text: "{chunk}"
+        Text: "{chunk}"
 
-    Make 1 fill-in-the-blank, 1 meaning (MCQ), 1 comprehension (MCQ). Include answers. Format:
+        Make 1 fill-in-the-blank, 1 meaning (MCQ), 1 comprehension (MCQ). Include answers. Format:
 
-    {
-        "fill_blank": "...",
-        "fill_blank_answer": "...",
-        "meaning_question": "...",
-        "meaning_options": ["A", "B", "C", "D"],
-        "meaning_answer": "B",
-        "comprehension_question": "...",
-        "comprehension_options": ["A", "B", "C", "D"],
-        "comprehension_answer": "D"
-        }
+        {{
+            "fill_blank": "...",
+            "fill_blank_answer": "...",
+            "meaning_question": "...",
+            "meaning_options": ["A", "B", "C", "D"],
+            "meaning_answer": "B",
+            "comprehension_question": "...",
+            "comprehension_options": ["A", "B", "C", "D"],
+            "comprehension_answer": "D"
+        }}
     """
+
     res = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": prompt}]

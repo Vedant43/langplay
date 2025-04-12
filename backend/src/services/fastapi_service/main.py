@@ -109,18 +109,14 @@ async def generate_quiz(data: TranscriptIn):
     try:
         start_time = time.time()
 
-        chunks = chunk_transcript(data.transcript)
-        quizzes = []
+        # No chunking, just use full transcript
+        quiz = generate_quiz_for_chunk(data.transcript)
+        if not quiz:
+            raise ValueError("Quiz generation failed")
 
-        for chunk in chunks:
-            quiz = generate_quiz_for_chunk(chunk)
-            if quiz:
-                quizzes.append(quiz)
-            else:
-                quizzes.append({"error": "Quiz generation failed for this chunk."})
         quiz_time = time.time() - start_time
         print(f"quiz time: {quiz_time:.2f} seconds")
-        return {"quizzes": quizzes}
+        return {"quiz": quiz}
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")

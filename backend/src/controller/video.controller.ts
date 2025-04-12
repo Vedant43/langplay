@@ -120,7 +120,7 @@ export const getVideoById = async (req: Request, res: Response) => {
                 transcript: video.transcriptLang,
             });
           
-            const generatedQuiz = response.data.quizzes
+            const generatedQuiz = response.data.quiz 
           
             // Save to DB
             await prisma.video.update({

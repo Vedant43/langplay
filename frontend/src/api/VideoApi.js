@@ -5,10 +5,10 @@ const fetchAllVideos = async () => {
     return response.data.data
 }
 
-// const fetchAllVideosByUser = async () => {
-//     const response = await apiClient.get("/video/:userId/videos")
-//     return response.data.data
-// }
+const fetchAllVideosByUser = async () => {
+    const response = await apiClient.get("/video/:userId/videos")
+    return response.data.data
+}
 
 const fetchHomeFeed = async () => {
     try {
@@ -65,5 +65,6 @@ export default {
     increaseViewCount,
     fetchHomeFeed,
     uploadVideo,
-    deleteVideo
+    deleteVideo,
+    fetchAllVideosByUser
 }
