@@ -129,6 +129,7 @@ export const getVideoById = async (req: Request, res: Response) => {
                 },
                 data: {
                   quiz: generatedQuiz, 
+                  quizGenerated: true
                 },
             })
           
@@ -530,7 +531,7 @@ const getBeginnerHomeFeed = async (userId: number) => {
     })
 
     const userUploadedVideos = await getUserUploadedVideos(user.languageToLearn, 3)
-
+    console.log("User uploaded ", userUploadedVideos)
     storedVideos = storedVideos.concat(userUploadedVideos, youtubeVideos)
 
     if(youtubeVideos.length === 0){

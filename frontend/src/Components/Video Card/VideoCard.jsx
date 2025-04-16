@@ -1,235 +1,164 @@
-import React, { useEffect, useState, useMemo } from 'react'
-import { Link } from 'react-router-dom'
-import { getTimeAgo } from '../../utils/formattingTime'
-import MoreVertIcon from '@mui/icons-material/MoreVert'
-import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd'
-import { useSelector, useDispatch } from 'react-redux'
-import { fetchPlaylistsIfNeeded, removeVideoFromPlaylist, addVideoToPlaylist } from '../redux/features/playlistSlice'
-import PlaylistApi from '../../api/PlaylistApi'
-import { IconButton } from '@mui/material'
+import React, { useState } from 'react';
+import { getTimeAgo } from '../../utils/formattingTime';
+import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchPlaylistsIfNeeded, removeVideoFromPlaylist, addVideoToPlaylist } from '../redux/features/playlistSlice';
+import PlaylistApi from '../../api/PlaylistApi';
+import { IconButton } from '@mui/material';
+import { Eye, Clock } from 'lucide-react';
 
-export const VideoCard = ({ id, thumbnail, title, channelName, userProfilePicture, views, duration, createdAt}) => {
+export const VideoCard = ({ 
+  id, 
+  thumbnail, 
+  title, 
+  channelName, 
+  source,
+  userProfilePicture, 
+  views, 
+  duration, 
+  createdAt
+}) => {
+  const [optionModal, setOptionModal] = useState(false);
+  const [playlistModal, setPlaylistModal] = useState(false);
+  const [playlistToAddVideo, setPlaylistToAddVideo] = useState([]);
 
-  const [ optionModal, setOptionModal ] = useState(false)
-  const [ playlistModal, setPlaylistModal ] = useState(false)
-  const [playlistToAddVideo, setPlaylistToAddVideo] = useState([]) 
+  const dispatch = useDispatch();
+  // Fixed selector to use "playlists" instead of "playlist"
+  const { playlists } = useSelector((state) => state.playlist);
   
-  const dispatch = useDispatch()
-  const { playlists, status, error, removeVideoStatus, playlistsLoaded } = useSelector((state) => state.playlist)
-
   const handleOptionModal = () => {
-    console.log("Option button clicked")
-    setOptionModal(!optionModal)
-  }
+    setOptionModal(!optionModal);
+  };
 
-  const selectUserCreatedPlaylists = useMemo(() => {
-    return playlists.filter(playlist => playlist.type === "USER_CREATED")
-  }, [playlists])
-
-const openPlaylistModal = async (e) => {
-    e.stopPropagation() 
-    setPlaylistModal(true)
+  const openPlaylistModal = async (e) => {
+    e.stopPropagation();
+    setPlaylistModal(true);
     try {
-      await dispatch(fetchPlaylistsIfNeeded()).unwrap()
-
-      const playlistsId = selectUserCreatedPlaylists.map((p) => p.id)
-    
-      const response = await PlaylistApi.isVideoInPlaylist(
-        playlistsId,
-        id
-      )
-      setPlaylistToAddVideo(response)
-    }catch (error) {
-      console.log(error) 
+      await dispatch(fetchPlaylistsIfNeeded()).unwrap();
+      const playlistsId = playlists.map((p) => p.id);
+      const response = await PlaylistApi.isVideoInPlaylist(playlistsId, id);
+      setPlaylistToAddVideo(response);
+    } catch (error) {
+      console.log(error);
     }
-  }
+  };
 
   const handleCheckedState = async (playlistId, videoId) => {
     try {
       if (playlistToAddVideo.includes(playlistId)) {
         setPlaylistToAddVideo((prevSelected) =>
           prevSelected.filter((id) => id !== playlistId)
-        )
-        await dispatch(removeVideoFromPlaylist({ playlistId, videoId })).unwrap() 
-
+        );
+        await dispatch(removeVideoFromPlaylist({ playlistId, videoId })).unwrap();
       } else {
-        setPlaylistToAddVideo((prevSelected) => [...prevSelected, playlistId]) 
-        await dispatch(addVideoToPlaylist({ playlistId, videoId })).unwrap() 
-        console.log("Added")
+        setPlaylistToAddVideo((prevSelected) => [...prevSelected, playlistId]);
+        await dispatch(addVideoToPlaylist({ playlistId, videoId })).unwrap();
       }
     } catch (error) {
-      console.log(error) 
+      console.log(error);
     }
-  }
+  };
+
+  const formattedTimeAgo = getTimeAgo(createdAt)?.replace('about ', '');
 
   return (
-    <div className=''>
-      <Link
-        to={`/video/${id}`}
-      >
-        <div 
-          className='w-full rounded'
+    <div className="flex flex-col relative">
+      <div className="absolute top-2 right-2 z-10">
+        <IconButton
+          onClick={openPlaylistModal}
+          style={{
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            padding: '4px',
+          }}
         >
-          <img 
-            src={thumbnail} 
-            className='w-full h-48 object-cover' 
-          />
-          <p>
-            {duration}
-          </p>
-        </div>
-      </Link>
-      <div 
-        className='flex justify-between'
-      >
-        <div className='flex'>
-          <div>
-            <img 
-              src={userProfilePicture}
-              className='w-10 h-10 rounded-full object-cover'
-            />
-          </div>
-          <div>
-            <h3 
-              className='text-base'
-            >
-              {title}
-            </h3>
-            <div
-            className='flex flex-col text-gray-1'
-            >
-              <p className=''>
-                {channelName}
-              </p>
-              <div className='flex gap-2'>
-                <p>
-                  {views} views
-                </p>
-                <span>&#x2022;</span>
-                <p>{getTimeAgo(createdAt)}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div 
-          className='relative flex min-w-10'
-        >  
-          <IconButton
-            onClick={handleOptionModal}
-            style={{
-              position: "absolute",
-              top: -5,
-              left: 15,
-            }}
-          >
-            <MoreVertIcon />
-          </IconButton>
+          <BookmarkBorderIcon style={{ color: 'white', fontSize: '18px' }} />
+        </IconButton>
 
-          {optionModal && (
+        {playlistModal && (
+          <div className="w-full fixed h-full z-30">
             <div
-              className='absolute right-0 top-8 w-48 border rounded-lg bg-zinc-200'
+              className="fixed top-0 left-0 w-full h-full bg-black opacity-45"
+              onClick={(e) => {
+                e.stopPropagation();
+                setPlaylistModal(false);
+                setOptionModal(false);
+              }}
             >
-              <div 
-                className='flex gap-2 m-2 cursor-pointer'
-              >
-                <PlaylistAddIcon />
-                <div
+            </div>
+            <div
+              className="z-40 max-w-80 mx-auto min-h-fit bg-white rounded-lg fixed p-6"
+              style={{
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+              }}
+            >
+              <div className="flex justify-between mb-4">
+                <span className="font-semibold">Save video to playlist</span>
+                <span
+                  className="cursor-pointer"
                   onClick={(e) => {
-                    openPlaylistModal(e)
+                    e.stopPropagation();
+                    setPlaylistModal(false);
+                    setOptionModal(false);
                   }}
                 >
-                  Add to playlist
-                </div>
-                {playlistModal && (
-                  <div 
-                    className="w-full fixed h-full"
-                  >
-                    <div
-                      className="fixed top-0 z-5 left-20 w-full h-full bg-black opacity-45"
-                      onClick={(e) => {
-                        e.stopPropagation() 
-                        setPlaylistModal(false) 
-                      }}
-                    >
+                  ✕
+                </span>
+              </div>
+              <div className="space-y-2">
+                {playlists && playlists.length > 0 ? (
+                  playlists.filter(playlist => playlist.type === "USER_CREATED").map((playlist, index) => (
+                    <div key={index} className="flex gap-3 items-center">
+                      <input
+                        type="checkbox"
+                        checked={playlistToAddVideo?.includes(playlist.id)}
+                        onChange={() => {
+                          handleCheckedState(playlist.id, id);
+                        }}
+                      />
+                      <span>{playlist.name}</span>
                     </div>
-
-                    <div
-                      className="z-30 max-w-80 mx-auto min-h-fit bg-white rounded-lg fixed"
-                      style={{
-                        top: "50%",
-                        left: "50%",
-                        transform: "translate(-50%, -50%)",
-                      }}
-                    >
-                      <div 
-                        className="flex flex-col w-full mx-auto p-8 rounded-lg shadow-2xl border border-gray-200"
-                      >
-                        <div 
-                          className="flex justify-between"
-                        >
-                          <div 
-                            className=""
-                          >
-                            Save video to playlist
-                          </div>
-                          <div
-                            onClick={(e) => {
-                              e.stopPropagation() 
-                              setPlaylistModal(false) 
-                              setOptionModal(false)
-                              console.log("Close button clicked") 
-                            }}
-                          >
-                            X
-                          </div>
-                        </div>
-
-                        <div 
-                          className="pt-2"
-                        >
-                          {selectUserCreatedPlaylists.length > 0 ? (
-                            selectUserCreatedPlaylists.map((playlist, index) => (
-                              <div 
-                                key={index} 
-                                className="flex gap-3"
-                              >
-                                <input
-                                  id={index}
-                                  type="checkbox"
-                                  checked={playlistToAddVideo?.includes(
-                                    playlist.id
-                                  )}
-                                  onChange={() => {
-                                    handleCheckedState(
-                                      playlist.id,
-                                      id
-                                    ) 
-                                  }}
-                                />
-                                <span 
-                                  className="lg:w-4/5"
-                                >
-                                  {playlist.name}
-                                </span>
-                              </div>
-                            ))
-                          ) : (
-                            <div>
-                              Empty playlist
-                            </div>
-                          )}
-
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  ))
+                ) : (
+                  <div>No playlists found</div>
                 )}
               </div>
             </div>
+          </div>
+        )}
+      </div>
+
+      <div
+        className="w-full rounded overflow-hidden shadow-sm hover:shadow-md transition relative"
+        onClick={() => (window.location.href = `/video/${id}`)}
+        style={{ cursor: 'pointer' }}
+      >
+        <div className="relative">
+          <img src={thumbnail} className="w-full h-48 object-cover" alt={title} />
+          <div className="absolute bottom-2 right-1 bg-black text-white text-xs px-1 py-0.5 rounded">
+            {duration}
+          </div>
+        </div>
+
+        <div className="p-2">
+          <h3 className="text-base font-semibold truncate text-gray-800">{title}</h3>
+          {channelName && (
+            <p className="text-sm text-gray-600 mt-1 line-clamp-1">{channelName}</p>
           )}
         </div>
       </div>
-      
+
+      <div className="flex justify-between items-center text-xs text-gray-500 mt-1 ml-1 pr-1">
+        <div className="flex items-center">
+          <Clock size={14} className="mr-1" />
+          <span>{formattedTimeAgo}</span>
+        </div>
+        <div className="flex items-center">
+          <Eye size={14} className="mr-1" />
+          <span>{views} views</span>
+        </div>  
+      </div>
     </div>
-  )
-}
+  );
+};

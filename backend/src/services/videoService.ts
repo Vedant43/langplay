@@ -9,7 +9,6 @@ export const getUserUploadedVideos = async (language: string, limit: number) => 
     return await prisma.video.findMany({
         where: { 
             language: languageEnum, 
-            isPublished: true,
             source: "USER_UPLOADED" 
         },
         take: limit,
@@ -20,6 +19,7 @@ export const getUserUploadedVideos = async (language: string, limit: number) => 
             thumbnailUrl: true,
             views: true,
             createdAt: true,
+            source: true,
             user: {
                 select: { 
                     id: true, 

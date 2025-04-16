@@ -2,12 +2,12 @@ import subprocess
 import json
 import subprocess
 import os
-import json
 from openai import OpenAI
 from openai_client import client
 import yt_dlp
 import shutil
 import tempfile
+import re
 
 def download_audio_from_youtube(url: str) -> str:
     # Create temp directory to store files
@@ -117,33 +117,54 @@ def get_video_duration(audio_path: str) -> float:
 # duration = get_video_duration("video.mp4")  # Returns seconds (float)
 
 def generate_quiz_for_chunk(chunk: str):
-    prompt = f"""
-        Text: "{chunk}"
-
-        Make 1 fill-in-the-blank, 1 meaning (MCQ), 1 comprehension (MCQ). Include answers. Format:
-
+    prompt = f"""You are a quiz generation bot. Based on the given text, return quiz questions in strict JSON format.
+Text: {chunk}
+Instructions:
+* Make 1 fill-in-the-blank
+* 1 meaning (MCQ)
+* 3 comprehension (MCQ)
+* Include answers
+* Respond with only raw valid JSON. Do not add markdown, comments, or any explanation.
+Expected JSON format: {{
+    "fill_blank": "Question text with a blank _____",
+    "fill_blank_answer": "correct answer",
+    "meaning_question": "What does 'XYZ' mean?",
+    "meaning_options": ["A", "B", "C", "D"],
+    "meaning_answer": "C",
+    "comprehension": [
         {{
-            "fill_blank": "...",
-            "fill_blank_answer": "...",
-            "meaning_question": "...",
-            "meaning_options": ["A", "B", "C", "D"],
-            "meaning_answer": "B",
-            "comprehension_question": "...",
-            "comprehension_options": ["A", "B", "C", "D"],
-            "comprehension_answer": "D"
+            "question": "Comprehension question 1?",
+            "options": ["A", "B", "C", "D"],
+            "answer": "A"
+        }},
+        {{
+            "question": "Comprehension question 2?",
+            "options": ["A", "B", "C", "D"],
+            "answer": "D"
+        }},
+        {{
+            "question": "Comprehension question 3?",
+            "options": ["A", "B", "C", "D"],
+            "answer": "B"
         }}
-    """
+    ]
+}}"""
 
     res = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": prompt}]
     )
+
     content = res.choices[0].message.content.strip()
     
+    # Remove any markdown code blocks
+    content = re.sub(r'```json|```', '', content).strip()
+    
     try:
-        return json.loads(content)  # safe to return a real dict now
-    except json.JSONDecodeError:
-        print("❌ GPT messed up the JSON. Here's what it gave:\n", content)
+        return json.loads(content)
+    except json.JSONDecodeError as e:
+        print(f"❌ JSON parsing error: {e}")
+        print("Raw content received:", content)
         return None
 
 def chunk_transcript(transcript: str, max_chars: int = 500):

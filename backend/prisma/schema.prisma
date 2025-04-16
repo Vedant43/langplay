@@ -83,7 +83,7 @@ model Playlist {
   type      PlaylistType?     @default(USER_CREATED)
   thumbnailUrl String?
   count     Int?
-  language  Language
+  language  Language?
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
   userId    Int?

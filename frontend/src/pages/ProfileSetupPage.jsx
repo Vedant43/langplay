@@ -152,14 +152,14 @@ export function SetupProfilePage() {
             <Button variant="outlined" color="secondary">
               Discard
             </Button>
-            <Link
+            {/* <Link
               to="/profile"
               className="no-underline"
-            >
+            > */}
               <Button type="submit" variant="contained" color="primary">
                 Save Changes
               </Button>
-            </Link>
+            {/* </Link> */}
           </div>
         </CardContent>
       </Card>
