@@ -111,23 +111,55 @@ export const VideoPage = () => {
   // const [showQuiz, setShowQuiz] = useState(false) 
   const [activeTab, setActiveTab] = useState("quiz")
 
+  // useEffect(() => {
+  //   if (!videoId) return; 
+  //   const ws = new WebSocket("ws://localhost:8000/ws");
+  
+  //   console.log("Starting FastAPI WebSocket job...");
+  
+  //   ws.onopen = () => {
+  //     console.log("Connected to FastAPI WebSocket");
+  //     ws.send(JSON.stringify({ event: "start_generation", videoId }));
+  //   };
+  
+  //   ws.onmessage = (event) => {
+  //     const message = JSON.parse(event.data);
+  //     console.log("Message from FastAPI:", message);
+  
+  //     if (message.event === "quiz_ready" || message.event === "transcript_ready") {
+  //       toast.success(`${message.event === "quiz_ready" ? "Quiz" : "Transcript"} is ready!`);
+  //       VideoApi.fetchVideo(videoId)
+  //         .then((updatedData) => {
+  //           setVideoData(updatedData);
+  //         });
+  //     }
+  //   };
+  
+  //   return () => {
+  //     ws.close();
+  //   };
+  // }, [videoId])
+  
   useEffect(() => {
     if (
-      activeTab === "quiz" &&
-      !videoData.quizGenerated &&
-      (!videoData.quiz || Object.keys(videoData.quiz).length === 0)
+      (activeTab === "quiz" || activeTab === "transcript") &&
+      (!videoData.quizGenerated || !videoData.transcriptLang)
     ) {
-      toast.loading("Generating quiz... Please wait.");
-      VideoApi.fetchVideo(videoId).then((updatedData) => {
-        setVideoData(updatedData);
-        toast.dismiss();
-        const quizReady = updatedData.quiz && Object.keys(updatedData.quiz).length > 0;
-        if (!quizReady) {
-          toast.error("Quiz could not be generated.");
-        }
-      });
+      toast.loading("Generating content... Please wait.");
+      VideoApi.fetchVideo(videoId)
+        .then((updatedData) => {
+          setVideoData(updatedData);
+          toast.dismiss();
+    
+          const quizReady = updatedData.quiz && Object.keys(updatedData.quiz).length > 0;
+          const transcriptReady = !!updatedData.transcriptLang;
+    
+          if (!quizReady || !transcriptReady) {
+            toast.error("Some content couldn't be generated.");
+          }
+        });
     }
-  }, [activeTab]);
+  }, [activeTab]);  
   
   const { videoId } = useParams()
   const navigate = useNavigate()
@@ -390,11 +422,6 @@ export const VideoPage = () => {
     }
   }
 
-  const handleGenerateTranscript = () => {
-    toast.success("Generating transcript...")
-    // Add your transcript generation logic here
-  }
-
   const handleCheckedState = async (playlistId, videoId) => {
     try {
       if (playlistToAddVideo.includes(playlistId)) {
@@ -440,49 +467,6 @@ export const VideoPage = () => {
         console.log(error) 
       }) 
   } 
-
-  const videoDataList = [
-    {
-      title: "Exploring Mountain Landscapes",
-      channelName: "Nature Explorers",
-      thumbnailUrl: "/api/placeholder/320/180?text=Video+1",
-      views: 45678,
-      duration: "3:59",
-      createdAt: "2025-02-14T12:44:12.299Z",
-    },
-    {
-      title: "Future of Technology: AI Insights",
-      channelName: "Tech Horizons",
-      thumbnailUrl: "/api/placeholder/320/180?text=Video+2",
-      views: 123456,
-      duration: "5:22",
-      createdAt: "2025-01-20T10:30:45.123Z",
-    },
-    {
-      title: "Culinary Secrets: Gourmet Cooking",
-      channelName: "Gourmet Kitchen",
-      thumbnailUrl: "/api/placeholder/320/180?text=Video+3",
-      views: 789012,
-      duration: "2:45",
-      createdAt: "2025-03-01T15:15:30.456Z",
-    },
-    {
-      title: "Travel Diaries: Hidden Gems",
-      channelName: "World Wanderers",
-      thumbnailUrl: "/api/placeholder/320/180?text=Video+4",
-      views: 234567,
-      duration: "4:12",
-      createdAt: "2025-02-28T08:55:22.789Z",
-    },
-    {
-      title: "Fitness Challenge: Transform Your Body",
-      channelName: "Fitness Revolution",
-      thumbnailUrl: "/api/placeholder/320/180?text=Video+5",
-      views: 567890,
-      duration: "6:01",
-      createdAt: "2025-02-10T18:20:11.234Z",
-    },
-  ] 
 
   return (
     <Container className="pt-4 relative w-full px-4 h-screen lg:grid grid-cols-5 gap-5">
@@ -572,24 +556,6 @@ export const VideoPage = () => {
                       <span className="text-gray-2">Add to Playlist</span>
                     </div>
                   </div>
-                  <div className="flex justify-center items-center text-sm gap-1 lg:border-solid lg:border lg:border-zinc-200 rounded cursor-pointer p-2">
-                    <div
-                      onClick={handleWatchLater}
-                      className="flex items-center gap-1"
-                    >
-                      <WatchLaterIcon />
-                      <span className="text-gray-2">Watch Later</span>
-                    </div>
-                  </div>
-                  <div className="flex justify-center items-center text-sm gap-1 lg:border-solid lg:border lg:border-zinc-200 rounded cursor-pointer p-2">
-                    <div
-                      onClick={handleGenerateTranscript}
-                      className="flex items-center gap-1"
-                    >
-                      <TextSnippetIcon />
-                      <span className="text-gray-2">Generate Transcript</span>
-                    </div>
-                  </div>
                 </>
               )}
             </div>
@@ -597,8 +563,15 @@ export const VideoPage = () => {
 
           {/* views and when created section */}
           <div className="flex gap-1 pt-6 lg:pt-2 text-sm text-zinc-600">
-            <span>{videoData.views} views</span>
-            <span>&#x2022; </span>
+            {isYouTubeVideo 
+              ? <>
+                </>
+              : <>
+                  <span>{videoData.views} views</span>
+                  <span>&#x2022; </span>
+                </>
+            }
+            
             <span>{getTimeAgo(videoData.createdAt)}</span>
           </div>
 
@@ -816,60 +789,62 @@ export const VideoPage = () => {
         </div>
       )}
 
+      {/* Right section */}
       <div className="mt-6 lg:col-span-2 bg-white rounded-xl shadow-lg overflow-hidden">
-      {/* Tabs Header */}
-      <div className="flex bg-gray-50 p-1 rounded-t-xl">
-        <button
-          onClick={() => setActiveTab("quiz")}
-          className={`flex-1 py-3 px-4 font-medium rounded-lg transition-all duration-200 flex items-center justify-center ${
-            activeTab === "quiz"
-              ? "bg-white text-blue-600 shadow-sm"
-              : "text-gray-600 hover:bg-gray-100"
-          }`}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-          </svg>
-          Quiz
-        </button>
-        <button
-          onClick={() => setActiveTab("transcript")}
-          className={`flex-1 py-3 px-4 font-medium rounded-lg transition-all duration-200 flex items-center justify-center ${
-            activeTab === "transcript"
-              ? "bg-white text-blue-600 shadow-sm"
-              : "text-gray-600 hover:bg-gray-100"
-          }`}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          Transcript
-        </button>
-      </div>
+        {/* Tabs Header */}
+        <div className="flex bg-gray-50 p-1 rounded-t-xl">
+          <button
+            onClick={() => setActiveTab("quiz")}
+            className={`flex-1 py-3 px-4 font-medium rounded-lg transition-all duration-200 flex items-center justify-center ${
+              activeTab === "quiz"
+                ? "bg-white text-blue-600 shadow-sm"
+                : "text-gray-600 hover:bg-gray-100"
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            Quiz
+          </button>
+          <button
+            onClick={() => setActiveTab("transcript")}
+            className={`flex-1 py-3 px-4 font-medium rounded-lg transition-all duration-200 flex items-center justify-center ${
+              activeTab === "transcript"
+                ? "bg-white text-blue-600 shadow-sm"
+                : "text-gray-600 hover:bg-gray-100"
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Transcript
+          </button>
+        </div>
 
-      {/* Tabs Content */}
-      <div className="p-6">
-        {activeTab === "quiz" ? (
-          videoData.quiz && Object.keys(videoData.quiz).length > 0 ? (
-            <Quiz quizData={normalizeQuizData(videoData.quiz)} />
-          ) : (
-            <div className="text-center py-12">
-              <div className="animate-pulse flex flex-col items-center justify-center">
-                <div className="rounded-full bg-blue-100 p-4 mb-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+        {/* Tabs Content */}
+        <div className="p-6">
+          {activeTab === "quiz" ? (
+            videoData.quiz && Object.keys(videoData.quiz).length > 0 ? (
+              <Quiz quizData={normalizeQuizData(videoData.quiz)} />
+            ) : (
+              <div className="text-center py-12">
+                <div className="animate-pulse flex flex-col items-center justify-center">
+                  <div className="rounded-full bg-blue-100 p-4 mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-800 mb-2">Generating quiz...</h3>
+                  <p className="text-gray-600 max-w-sm">Hang tight while we prepare your questions!</p>
                 </div>
-                <h3 className="text-lg font-medium text-gray-800 mb-2">Generating quiz...</h3>
-                <p className="text-gray-600 max-w-sm">Hang tight while we prepare your questions!</p>
               </div>
-            </div>
-          )
-        ) : (
-          <TranscriptComponent transcript={videoData.transcript} />
-        )}
+            )
+          ) : (
+            // <TranscriptComponent transcript={videoData.transcript} />
+            <></>
+          )}
+        </div>
       </div>
-    </div>
 
     </Container>
   ) 

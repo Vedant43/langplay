@@ -11,7 +11,7 @@ import { getUserUploadedVideos } from "../services/videoService";
 import { storePlaylistsInDB } from "../services/youtubeService";
 import { getLanguageEnum } from "../utils/language";
 import { storeVideosInDb } from "../services/youtubeService";
-// import { getYouTubeVideos } from "../services/youtubeService";
+import { generateQuizAndTranscript } from "../utils/websocketClient";
 
 interface MulterFileFields {
     video: Express.Multer.File[]
@@ -73,98 +73,49 @@ export const uploadVideo = async (req: Request, res: Response) => {
 }
 
 export const getVideoById = async (req: Request, res: Response) => {
-    const videoId = parseInt(req.params.id, 10)
-    if (isNaN(videoId)) throw new ApiError(400, "Invalid video ID")
-
-    // update video view counts
+    const videoId = parseInt(req.params.id, 10);
+    if (isNaN(videoId)) throw new ApiError(400, "Invalid video ID");
+  
     const video = await prisma.video.findUnique({
-        where: {    
-            id: videoId
+      where: { id: videoId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            profilePicture: true,
+            subscribers: true,
+            subscribedTo: true
+          }
         },
-        include: {
+        comments: {
+          select: {
+            id: true,
+            content: true,
+            createdAt: true,
             user: {
-                select:{
-                    id: true,
-                    username: true,
-                    profilePicture:true,
-                    subscribers:true,
-                    subscribedTo:true
-                }
-            },
-            comments: {
-                select:{
-                    id:true,
-                    content: true,
-                    createdAt: true,
-                    user: {
-                        select: {
-                            id: true,
-                            username: true,
-                            profilePicture: true
-                        }
-                    }
-                }
-            },
-            videoEngagement: true,
+              select: {
+                id: true,
+                username: true,
+                profilePicture: true
+              }
+            }
+          }
         },
-    })
-
-    if (!video) throw new ApiError(404, "Video not found")
-
-    // For quiz
-    if (!video.quiz || (Array.isArray(video.quiz) && video.quiz.length === 0)) {
-        console.log("Generating new quiz...");
-          
-        try {
-            const response = await axios.post("http://localhost:8000/generate-quiz/", {
-                transcript: video.transcriptLang,
-            });
-          
-            const generatedQuiz = response.data.quiz 
-          
-            // Save to DB
-            await prisma.video.update({
-                where: { 
-                    id: video.id 
-                },
-                data: {
-                  quiz: generatedQuiz, 
-                  quizGenerated: true
-                },
-            })
-          
-            video.quiz = generatedQuiz
-        } catch (err:any) {
-            console.error("Quiz generation failed:", err.response);
-        }
-    }
-
-    //For transcript
-    if (!video.transcriptLang || video.transcriptLang.length === 0) {
-        console.log("Transcript not found, generating...");
-      
-        try {
-            const { data } = await axios.post("http://localhost:8000/generate-transcribe/", {
-              videoUrl: video.videoUrl,
-            });
-          
-            await prisma.video.update({
-              where: { 
-                id: video.id 
-            },
-              data: {
-                transcriptLang: data.transcript,
-              },
-            });
-          
-            video.transcriptLang = data.transcript;
-        } catch (error:any) {
-            console.log("Error in transcript ", error.response)
-        }
+        videoEngagement: true
       }
-          
-    return new ApiResponse(200, "Video fetched successfully", video).send(res)
-}
+    });
+  
+    if (!video) throw new ApiError(404, "Video not found");
+  
+    // If either quiz or transcript missing, trigger WebSocket process
+    if (!video.quiz || !video.transcriptLang) {
+      console.log("Starting FastAPI WebSocket job...");
+      generateQuizAndTranscript(video.id, video.videoUrl);
+    }
+  
+    return new ApiResponse(200, "Video fetched successfully", video).send(res);
+};
 
 export const increaseViewCount = async (req: Request, res: Response) => {
     const videoId = parseInt(req.params.id, 10)
