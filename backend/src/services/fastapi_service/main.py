@@ -109,7 +109,6 @@ async def generate_quiz(data: TranscriptIn):
     try:
         start_time = time.time()
 
-        # No chunking, just use full transcript
         quiz = generate_quiz_for_chunk(data.transcript)
         if not quiz:
             raise ValueError("Quiz generation failed")
