@@ -18,6 +18,7 @@ import { addVideoToPlaylist, createPlaylist, removeVideoFromPlaylist, fetchPlayl
 } from "../Components/redux/features/playlistSlice" 
 import { useDispatch, useSelector } from "react-redux" 
 import { VideoListCard } from "../Components/Video Card/VideoListCard" 
+import { Transcript } from "../Components/Transcript"
 import PlaylistApi from "../api/PlaylistApi" 
 import UserApi from "../api/UserApi" 
 import avatar from "../assets/default-avatar.jpg" 
@@ -840,8 +841,7 @@ export const VideoPage = () => {
               </div>
             )
           ) : (
-            // <TranscriptComponent transcript={videoData.transcript} />
-            <></>
+            <Transcript transcript={videoData.transcriptLang} />
           )}
         </div>
       </div>

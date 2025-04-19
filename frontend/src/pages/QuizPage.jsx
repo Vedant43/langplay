@@ -70,7 +70,7 @@ export const Quiz = ({ quizData }) => {
       ) : (
         <ul className="space-y-2">
           {currentQuestion.options.map((option, index) => (
-            <li key={index}>
+            <li key={index} className='list-none'>
               <button
                 onClick={() => handleOptionSelect(option.charAt(0))} 
                 className={`block w-full py-2 px-4 rounded-md border ${
@@ -88,7 +88,7 @@ export const Quiz = ({ quizData }) => {
 
       <button
         onClick={goToNextQuestion}
-        className="mt-4 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+        className="mt-4 bg-primary hover:bg-h-primary text-white font-bold py-2 px-4 rounded"
         disabled={
           selectedOptions[currentQuestionIndex] === undefined ||
           selectedOptions[currentQuestionIndex] === ''

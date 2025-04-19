@@ -72,6 +72,8 @@ async def process_video_and_quiz(websocket: WebSocket, video_url: str):
         quiz = generate_quiz_for_chunk(text)
         await websocket.send_json({"event": "quiz_ready", "message": "Your quiz is ready 🎉", "quiz": quiz})
 
+        await websocket.close()
+
         total_time = time.time() - start_time
         print(f"✅ Total processing time: {total_time:.2f} seconds")
 

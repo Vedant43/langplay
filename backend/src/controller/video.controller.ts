@@ -72,12 +72,16 @@ export const uploadVideo = async (req: Request, res: Response) => {
     return new ApiResponse(200, "Video uploaded successfully").send(res)
 }
 
+const inProgressVideos = new Set<number>();
+
 export const getVideoById = async (req: Request, res: Response) => {
     const videoId = parseInt(req.params.id, 10);
     if (isNaN(videoId)) throw new ApiError(400, "Invalid video ID");
   
     const video = await prisma.video.findUnique({
-      where: { id: videoId },
+      where: { 
+        id: videoId 
+      },
       include: {
         user: {
           select: {
@@ -102,16 +106,36 @@ export const getVideoById = async (req: Request, res: Response) => {
             }
           }
         },
-        videoEngagement: true
+        videoEngagement: true,
       }
     });
   
     if (!video) throw new ApiError(404, "Video not found");
   
     // If either quiz or transcript missing, trigger WebSocket process
-    if (!video.quiz || !video.transcriptLang) {
-      console.log("Starting FastAPI WebSocket job...");
-      generateQuizAndTranscript(video.id, video.videoUrl);
+    // if (!video.quiz || !video.transcriptLang) {
+    //   console.log("Starting FastAPI WebSocket job...");
+    //   generateQuizAndTranscript(video.id, video.videoUrl);
+    // }
+
+    const transcriptExists = !!video.transcriptLang;
+    const quizExists = !!video.quiz;
+
+    // If either quiz or transcript is missing, and not already in progress
+    if ((!transcriptExists || !quizExists) && !inProgressVideos.has(videoId)) {
+        console.log("📡 Triggering FastAPI WebSocket for video:", videoId);
+        inProgressVideos.add(videoId);  // Mark video as being processed
+
+        try {
+            await generateQuizAndTranscript(video.id, video.videoUrl);
+            console.log("Quiz and Transcript generated successfully!");
+        } catch (err) {
+            console.error("Error generating quiz and transcript:", err);
+        } finally {
+            inProgressVideos.delete(videoId); // Remove from in-progress set after processing
+        }
+    } else {
+        console.log("Transcript/quiz already present or generation in progress");
     }
   
     return new ApiResponse(200, "Video fetched successfully", video).send(res);
@@ -482,7 +506,7 @@ const getBeginnerHomeFeed = async (userId: number) => {
     })
 
     const userUploadedVideos = await getUserUploadedVideos(user.languageToLearn, 3)
-    console.log("User uploaded ", userUploadedVideos)
+    
     storedVideos = storedVideos.concat(userUploadedVideos, youtubeVideos)
 
     if(youtubeVideos.length === 0){
