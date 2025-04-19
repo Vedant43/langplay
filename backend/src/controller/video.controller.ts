@@ -294,14 +294,41 @@ export const getLikedVideos = async (req: Request, res: Response) => {
 
 export const getHomeFeed = async (req: Request, res: Response) => {
     try {
-        const userId = (req as AuthRequest).userId
-        const homeFeed = await getBeginnerHomeFeed(userId)
-        return new ApiResponse(200, "Fetched homefeed", homeFeed).send(res)
+      const userId = (req as AuthRequest).userId;
+  
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          languageToLearn: true,
+          languageSkillLevel: true,
+        },
+      });
+  
+      if (!user || !user.languageToLearn) {
+        throw new ApiError(400, "Invalid user data");
+      }
+  
+      const language = getLanguageEnum(user.languageToLearn);
+      if (!language) {
+        throw new ApiError(400, "Invalid language");
+      }
+  
+      const level = user.languageSkillLevel?.toLowerCase?.() || "";
+  
+      if (level === "beginner") {
+        return new ApiResponse(200, "Fetched beginner home feed", await getBeginnerFeed(language)).send(res);
+      } else if (level === "intermediate") {
+        return new ApiResponse(200, "Fetched intermediate home feed", await getIntermediateFeed(language)).send(res);
+      } else {
+        return new ApiResponse(200, "No feed available for this level", { storedPlaylists: [], storedVideos: [] }).send(res);
+      }
+  
     } catch (error) {
-        console.log("error in fetching home feed ", error)
-        throw new ApiError(400, "Error in fetching home feed", error)
+      console.error("error in fetching home feed", error);
+      throw new ApiError(400, "Error in fetching home feed", error);
     }
-}
+  };
+  
 
 export const likeVideo = async (req: Request, res: Response) => {
     const videoId = parseInt(req.params.id, 10)
@@ -469,32 +496,21 @@ const getDislikeCount = async (videoId: number) => {
     })
 }
 
-const getBeginnerHomeFeed = async (userId: number) => {
-    
-    const user = await prisma.user.findUnique({
-      where: { 
-        id: userId 
-      },
-      select: { 
-        languageToLearn: true, 
-        languageSkillLevel: true 
-      },
-    })
-
-    if (!user || !user.languageToLearn) throw new ApiError(400,"Invalid user data")
-    if (user.languageSkillLevel !== "Beginner") return []
-
-    const language = getLanguageEnum(user.languageToLearn) 
-    if (!language) return
-
-    let storedPlaylists: any[] = []
-
+const getBeginnerFeed = async (language: Language) => {
+    return await getFeedForLevel(language);
+  };
+  
+  const getIntermediateFeed = async (language: Language) => {
+    return await getFeedForLevel(language);
+  };
+  
+  const getFeedForLevel = async (language: Language) => {
+    let storedPlaylists: any[] = [];
+    let storedVideos: any[] = [];
+  
     const youtubePlaylists = await prisma.playlist.findMany({
-      where: { 
-        language, 
-        type: "YOUTUBE"
-      },
-      take:3,
+      where: { language, type: "YOUTUBE" },
+      take: 3,
       include: {
         _count: {
           select: {
@@ -502,44 +518,36 @@ const getBeginnerHomeFeed = async (userId: number) => {
           },
         },
       },
-    })
-
+    });
+  
     const uploadedPlaylists = await prisma.playlist.findMany({
-        where: { 
-          language, 
-          type: "USER_CREATED"
-        },
-        take:3
-    })
-
-    storedPlaylists = storedPlaylists.concat(uploadedPlaylists, youtubePlaylists)
-
+      where: { language, type: "USER_CREATED" },
+      take: 3,
+    });
+  
+    storedPlaylists = storedPlaylists.concat(uploadedPlaylists, youtubePlaylists);
+  
     if (youtubePlaylists.length === 0) {
-      const fetchedYoutubePlaylists = await storePlaylistsInDB(user.languageToLearn)
-      storedPlaylists = storedPlaylists.concat(fetchedYoutubePlaylists)
-      console.log("YT api called")
-    }
-
-    let storedVideos: any[] = []
-
-    const youtubeVideos = await prisma.video.findMany({
-        where:{
-            source: "YOUTUBE",
-            language: user.languageToLearn
-        },
-        take: 3
-    })
-
-    const userUploadedVideos = await getUserUploadedVideos(user.languageToLearn, 3)
-    console.log("User uploaded ", userUploadedVideos)
-    storedVideos = storedVideos.concat(userUploadedVideos, youtubeVideos)
-
-    if(youtubeVideos.length === 0){
-        const fetchedYoutubeVideos = await storeVideosInDb(user.languageToLearn)
-        console.log("YT api called")
-        storedVideos = storedVideos.concat(fetchedYoutubeVideos)
+      const fetched = await storePlaylistsInDB(language);
+      storedPlaylists = storedPlaylists.concat(fetched);
     }
   
-    return { storedPlaylists, storedVideos }
-}
+    const youtubeVideos = await prisma.video.findMany({
+      where: {
+        source: "YOUTUBE",
+        language,
+      },
+      take: 3,
+    });
+  
+    const userUploadedVideos = await getUserUploadedVideos(language, 3);
+    storedVideos = storedVideos.concat(userUploadedVideos, youtubeVideos);
+  
+    if (youtubeVideos.length === 0) {
+      const fetched = await storeVideosInDb(language);
+      storedVideos = storedVideos.concat(fetched);
+    }
+  
+    return { storedPlaylists, storedVideos };
+  };
   

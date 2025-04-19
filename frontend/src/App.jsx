@@ -29,23 +29,36 @@ function App() {
 
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
-
+  
     if (accessToken) {
       UserApi.fetchProfileInfo()
-        .then((response) => {
-          
-          const { username } = response;
-          const id = Number(response.id);
-          let channelName = response.channelName;
-          let profilePicture = response.profilePicture;
-          let subscribers = response.subscribers.length> 0 ? response.subscribers.length : 0
-
-          if (!profilePicture) profilePicture = avatar;
-          dispatch(setUser({ profilePicture, channelName, username, id, subscribers }))
-        })
-        .catch((error) => console.log(error));
+      .then((response) => {
+        if (!response) throw new Error("No profile info returned");
+    
+        const {
+          id,
+          username,
+          channelName,
+          profilePicture,
+          coverPicture,
+          description,
+          subscribers = []
+        } = response;
+    
+        dispatch(setUser({
+          id,
+          username,
+          channelName,
+          profilePicture: profilePicture || avatar,
+          coverPicture: coverPicture || null,
+          description: description || "",
+          subscribers: subscribers.length,
+        }));
+      })
+        .catch((error) => console.log("Fetch profile failed:", error));
     }
-  }, [])
+  }, []);
+  
 
     // useEffect(() => {
     //   console.log("Id in useeffect-------", id)

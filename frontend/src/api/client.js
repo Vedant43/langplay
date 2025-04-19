@@ -9,7 +9,7 @@ export const apiClient = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
 
-    if (!config.noAuth) {
+    if (!config?.headers?.NoAuth) {
         const token = localStorage.getItem("accessToken")
         if (token) {
             config.headers.Authorization = `Bearer ${token}`

@@ -1,23 +1,30 @@
-import React from "react";
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import { useNavigate, Link } from "react-router-dom";
 import { Container } from "../Components/container/Container";
-import { useState } from "react";
-import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { signUpSchema } from "@vedant567/neotube-common";
 import { Loader } from "../Components/AuthForm/Loader";
 import avatar from "../assets/default-avatar.jpg";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Link, useNavigate } from "react-router-dom";
-import { signUpSchema } from "@vedant567/neotube-common";
-import { InputField } from "../Components/AuthForm/InputField";
+import UserApi from "../api/UserApi";
+import { useDispatch } from "react-redux";
+import { setUser } from "../Components/redux/features/authSlice";
+import { fetchPlaylistsIfNeeded } from "../Components/redux/features/playlistSlice";
+import { z } from "zod";
 import PersonIcon from "@mui/icons-material/Person";
 import EmailIcon from "@mui/icons-material/Email";
 import HttpsIcon from "@mui/icons-material/Https";
-import UserApi from "../api/UserApi";
-import { setUser } from "../Components/redux/features/authSlice";
-import { useDispatch } from "react-redux";
-import { fetchPlaylistsIfNeeded } from "../Components/redux/features/playlistSlice";
+
+const extendedSignUpSchema = signUpSchema.extend({
+  languageToLearn: z.string().min(1, "Please select a language"),
+  level: z.string().min(1, "Please select your level"),
+});
 
 export const SignUpPage = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
   const {
     register,
     handleSubmit,
@@ -28,143 +35,181 @@ export const SignUpPage = () => {
     mode: "onChange",
     resolver: zodResolver(extendedSignUpSchema),
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-
-  // const onSubmit = async (data) => {
-  //       setIsLoading(true)
-
-  //       try {
-  //           const { confirmPassword, ...backendData } = data
-  //           const user = await axios.post("http://localhost:3000/api/v1/user/signup", backendData)
-  //           setIsLoading(false)
-  //           localStorage.setItem('accessToken', user.data.data.accessToken)
-  //           navigate("/")
-  //       } catch (error) {
-  //           console.log(error)
-  //           setIsLoading(false)
-  //           reset({ username: "", email:"", password: "", confirmPassword: "" })
-  //           setError("dbError",{ type: "db", message: error.response.data.message })
-  //           // yet to handle server error, can be handled by checking time for setIsLoading(true)
-  //         }
-  //   }
 
   const onSubmit = async (data) => {
     setIsLoading(true);
-
+  
     UserApi.userSignUp(data)
       .then((response) => {
         setIsLoading(false);
-        const { username, id } = response;
-        let channelName = response.newUser.channelName;
-        let profilePicture = response.newUser.profilePicture;
-
-        if (!profilePicture) profilePicture = avatar;
-        dispatch(setUser({ profilePicture, channelName, username, id }));
-        dispatch(fetchPlaylistsIfNeeded());
+        console.log("Signup response:", response);
+  
+        const id = response.newUser.id;
+        const username = response.newUser.username;
+        const channelName = response.newUser.channelName || "";
+        const profilePicture = response.newUser.profilePicture || avatar;
+        const coverPicture = response.newUser.coverPicture || null;
+        const description = response.newUser.description || "";
+        const subscribers = response.newUser.subscribers?.length || 0;
+  
+        dispatch(setUser({ id, username, channelName, profilePicture, coverPicture, description, subscribers }));
         localStorage.setItem("accessToken", response.accessToken);
+        dispatch(fetchPlaylistsIfNeeded());
         navigate("/");
       })
       .catch((error) => {
         setIsLoading(false);
-        reset({ username: "", email: "", password: "", confirmPassword: "" });
-        console.log(error);
+        reset({ username: "", email: "", password: "", confirmPassword: "", languageToLearn: "" });
+  
+        setError("dbError", {
+          type: "db",
+          message: error?.response?.data?.message || "Something went wrong",
+        });
       });
   };
+  
+  
+  
 
-  const closeSignUp = () => {
-    navigate("/");
-  };
+  const closeSignUp = () => navigate("/");
 
   return (
-    <Container className="relative flex items-center justify-center min-h-screen">
+    <Container className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden">
+      {/* BACKGROUND OVERLAY */}
       <div
-        className="fixed h-screen w-full inset-0 bg-black opacity-60"
+        className="absolute inset-0 bg-white/50 backdrop-blur-sm z-30"
         onClick={closeSignUp}
       ></div>
 
-      <div className="z-10 w-full max-w-md">
-        <div className="flex items-center justify-center w-full lg:w-4/5 max-w-md mx-auto p-8 bg-white rounded-lg shadow-2xl border border-gray-200">
-          <div className="flex flex-col">
-            <h3 className="flex justify-center items-center text-primary mb-4">
-              Sign Up
-            </h3>
+      {/* MODAL PANEL */}
+      <div className="z-40 w-full max-w-4xl h-[520px] md:flex bg-white rounded-xl overflow-hidden shadow-2xl border border-zinc-200 relative">
+        {/* LEFT PANEL */}
+        <div className="w-full md:w-1/2 px-8 py-10 bg-white z-40 flex flex-col justify-center">
+          <h2 className="text-[26px] font-bold text-[#1c1c2e] mb-4">Sign up</h2>
 
-            {isLoading ? (
-              <Loader />
-            ) : (
-              <form onSubmit={handleSubmit(onSubmit)}>
-                <InputField
-                  label={"Username:"}
-                  placeholder={"Enter your username"}
-                  icon={<PersonIcon sx={{ fontSize: 18 }} />}
-                  type={"text"}
-                  id={"username"}
-                  register={register}
-                  errors={errors}
-                />
-                <InputField
-                  label={"Email:"}
-                  placeholder={"Enter your email"}
-                  icon={<EmailIcon sx={{ fontSize: 18 }} />}
-                  type={"email"}
-                  id={"email"}
-                  register={register}
-                  errors={errors}
-                />
-                <InputField
-                  label={"Password:"}
-                  placeholder={"Enter your password"}
-                  icon={<HttpsIcon sx={{ fontSize: 18 }} />}
-                  type={"password"}
-                  id={"password"}
-                  register={register}
-                  errors={errors}
-                />
-                <InputField
-                  label={"Confirm Password:"}
-                  placeholder={"Re-enter your password"}
-                  icon={<HttpsIcon sx={{ fontSize: 18 }} />}
-                  type={"password"}
-                  id={"confirmPassword"}
-                  register={register}
-                  errors={errors}
-                />
-
-                <div className="">
-                  <button className="w-full bg-primary hover:bg-h-primary text-white font-medium py-2 px-4 rounded-md shadow-sm transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 flex items-center justify-center">
-                    Sign Up
-                  </button>
-
-                  {errors.dbError && (
-                    <p className="text-red-400 pt-1 text-xs text-center">
-                      {errors.dbError.message}
-                    </p>
+          {isLoading ? (
+            <Loader />
+          ) : (
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              className="flex flex-col justify-center h-full space-y-4"
+            >
+              {/* Username */}
+              <div>
+                <label className="text-sm text-gray-800 mb-1 block">Username</label>
+                <div className="relative">
+                  <PersonIcon className="absolute left-3 top-1 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    {...register("username")}
+                    type="text"
+                    placeholder="Enter your username"
+                    className="w-full py-2 pl-10 pr-3 border border-gray-300 rounded-md text-sm text-gray-800 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#616494]"
+                  />
+                  {errors.username && (
+                    <p className="text-xs text-red-500 mt-1">{errors.username.message}</p>
                   )}
-
-                  <p className="pt-2">
-                    Already have an account?{" "}
-                    <Link to={"/signin"} className="nunderline">
-                      {" "}
-                      Sign in{" "}
-                    </Link>
-                  </p>
                 </div>
-              </form>
-            )}
-          </div>
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="text-sm text-gray-800 mb-1 block">Email</label>
+                <div className="relative">
+                  <EmailIcon className="absolute left-3 top-1 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    {...register("email")}
+                    type="email"
+                    placeholder="Enter your email"
+                    className="w-full py-2 pl-10 pr-3 border border-gray-300 rounded-md text-sm text-gray-800 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#616494]"
+                  />
+                  {errors.email && (
+                    <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Password */}
+              <div>
+                <label className="text-sm text-gray-800 mb-1 block">Password</label>
+                <div className="relative">
+                  <HttpsIcon className="absolute left-3 top-1 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    {...register("password")}
+                    type="password"
+                    placeholder="Enter your password"
+                    className="w-full py-2 pl-10 pr-3 border border-gray-300 rounded-md text-sm text-gray-800 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#616494]"
+                  />
+                  {errors.password && (
+                    <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Language Dropdown */}
+              <div>
+                <label className="text-sm text-gray-800 mb-1 block">Language to Learn</label>
+                <select
+                  {...register("languageToLearn")}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#616494]"
+                >
+                  <option value="">Select a language</option>
+                  <option value="english">English</option>
+                  <option value="" disabled>More languages coming soon...</option>
+                </select>
+                {errors.languageToLearn && (
+                  <p className="text-xs text-red-500 mt-1">{errors.languageToLearn.message}</p>
+                )}
+              </div>
+
+              {/* Level Dropdown */}
+              <div>
+                <label className="text-sm text-gray-800 mb-1 block">Your Level</label>
+                <select
+                  {...register("level")}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#616494]"
+                >
+                  <option value="">Select level</option>
+                  <option value="beginner">Beginner</option>
+                  <option value="intermediate">Intermediate</option>
+                </select>
+                {errors.level && (
+                  <p className="text-xs text-red-500 mt-1">{errors.level.message}</p>
+                )}
+              </div>
+
+              {/* SignUp Button */}
+              <button
+                type="submit"
+                className="w-72 mx-auto mt-4 py-3 bg-[#616494] text-white font-semibold rounded-md hover:bg-[#4d5078] transition"
+              >
+                Sign up
+              </button>
+
+              {/* Redirect */}
+              <p className="text-sm text-center text-gray-700 mt-2">
+                Already have an account?{" "}
+                <Link to="/signin" className="text-[#616494] font-semibold hover:underline">
+                  Sign in
+                </Link>
+              </p>
+            </form>
+          )}
+        </div>
+
+        {/* RIGHT PANEL */}
+        <div className="hidden md:flex md:w-1/2 flex-col items-center justify-start py-8 px-6 bg-[#1c1c2e] text-white">
+          <h2 className="text-[26px] font-bold mb-2">Speak the World</h2>
+          <p className="text-sm text-gray-300 mb-4 text-center max-w-xs">
+            Master any language with conversations that feel real.
+          </p>
+          <img
+            src="/coverimage.jpg"
+            alt="illustration"
+            className="w-full rounded-md shadow-md object-cover mb-2"
+            style={{ height: "calc(100% - 100px)", objectPosition: "center" }}
+          />
         </div>
       </div>
     </Container>
   );
 };
-
-const extendedSignUpSchema = signUpSchema
-  .extend({
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
-  });

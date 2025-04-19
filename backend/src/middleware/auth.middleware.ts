@@ -14,6 +14,8 @@ export const authenticate : RequestHandler = (req: Request, res: Response, next:
     
     try {
         const decoded = verifyToken(token)
+console.log("Decoded token:", decoded)
+
         if(!decoded){
             throw new ApiError(401, "Unauthorized!!")
         }
