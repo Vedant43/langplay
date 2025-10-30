@@ -2,6 +2,12 @@
 
 An interactive language learning platform that makes language acquisition engaging through AI-generated quizzes, video content, and social features.
 
+## 🎥 Video Demo
+
+Experience how **LangPlay** makes language learning interactive and AI-powered - from real-time quizzes to automatic video transcription.
+
+[![LangPlay Demo]](https://youtu.be/FGh6LMI4khc)
+
 ## 🌟 Features
 
 ### Core Learning Features
