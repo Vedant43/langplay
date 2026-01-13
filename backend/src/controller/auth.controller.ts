@@ -15,7 +15,7 @@ interface MulterFileFields {
 }
 
 export const signUp = async (req: Request, res: Response) => {
-    const { username, email, password, languageToLearn } = req.body
+    const { username, email, password, languageToLearn,level  } = req.body
     console.log(req.body)
     // const files = req.files as { [fieldname: string]: Express.Multer.File[] }
     // const profilePicture = files?.profilePicture?.[0]?.path || null
@@ -45,13 +45,24 @@ export const signUp = async (req: Request, res: Response) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const language = getLanguageEnum(languageToLearn)
     if (!language) return
+
     const newUser = await prisma.user.create({
       data: {
         username,
         email,
         password: hashedPassword,
-        languageToLearn: language
+        languageToLearn: language,
+        languageSkillLevel: level, 
       },
+      select: {
+        id: true,
+        username: true,
+        profilePicture: true,
+        channelName: true,
+        subscribers: true,
+        coverPicture: true,
+        description: true,
+      }
     });
     console.log("Reached in sign up controller---3")
 
@@ -132,63 +143,70 @@ export const getProfilePicAndChannelNameStatus = async (req: Request, res: Respo
 }
 
 export const setupProfile = async (req: Request, res: Response) => {
-    console.log(req.body)
-    const { channelName, description } = req.body
-    const userId = (req as AuthRequest).userId
-    // const files = req.files as { [fieldname: string]: Express.Multer.File[] }
-    const files = req.files as MulterFileFields | undefined
+  console.log(req.body);
+  const { channelName, description } = req.body;
+  const userId = (req as AuthRequest).userId;
+  const files = req.files as MulterFileFields | undefined;
 
-    const profilePicturePath = files?.profilePicture?.[0]?.path 
-    const coverPicturePath = files?.coverPicture?.[0]?.path
+  const profilePicturePath = files?.profilePicture?.[0]?.path;
+  const coverPicturePath = files?.coverPicture?.[0]?.path;
 
-    const existingUser = await prisma.user.findUnique({
-      where:{
-        id: userId
-      }
-    })
+  const existingUser = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+  });
 
-    if(!existingUser){
-      throw new ApiError(404, "User does not exist")
-    }
-    const channelNameExists = await prisma.user.findUnique({
-      where: { 
-        channelName 
-      },
-    })
+  if (!existingUser) {
+    throw new ApiError(404, "User does not exist");
+  }
 
-    if(channelNameExists){
-      throw new ApiError(422, "Channel name already exists")
-    }
+  const updateData: Record<string, any> = {};
 
-    const updateData: Record<string, any> = {}
-
-    updateData.channelName = channelName
-
-    if (profilePicturePath) {
-      const uploadedProfile = await uploadImageOnCloudinary(profilePicturePath, userId)
-      updateData.profilePicture = uploadedProfile.secure_url
-    }
-
-    if (coverPicturePath) {
-      const uploadedCover = await uploadImageOnCloudinary(coverPicturePath, userId)
-      updateData.coverPicture = uploadedCover.secure_url
-    }
-
-    if (description) {
-      updateData.description = description
-    }
-
-    if (Object.keys(updateData).length > 0) {
-      await prisma.user.update({
-        where: { 
-          id: userId 
+  // Only check channel name if changed
+  if (channelName && channelName !== existingUser.channelName) {
+    const channelNameExists = await prisma.user.findFirst({
+      where: {
+        channelName,
+        id: {
+          not: userId,
         },
-        data: updateData,
-      })
+      },
+    });
+
+    if (channelNameExists) {
+      throw new ApiError(422, "Channel name already exists");
     }
 
-    return new ApiResponse(200, "Profile updated successfully").send(res)
-}
+    updateData.channelName = channelName;
+  }
+
+  if (profilePicturePath) {
+    const uploadedProfile = await uploadImageOnCloudinary(profilePicturePath, userId);
+    updateData.profilePicture = uploadedProfile.secure_url;
+  }
+
+  if (coverPicturePath) {
+    const uploadedCover = await uploadImageOnCloudinary(coverPicturePath, userId);
+    updateData.coverPicture = uploadedCover.secure_url;
+  }
+
+  if (description) {
+    updateData.description = description;
+  }
+
+  if (Object.keys(updateData).length > 0) {
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: updateData,
+    });
+  
+    return new ApiResponse(200, "Profile updated successfully", updatedUser).send(res);
+  }
+  
+  return new ApiResponse(200, "Nothing to update", existingUser).send(res);
+  
+};
 
 export const getuserById = async (req: Request, res: Response) => {
   // const userId = (req as AuthRequest).userId

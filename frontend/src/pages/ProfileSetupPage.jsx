@@ -15,25 +15,35 @@ import Cropper from "react-easy-crop";
 import { useForm } from "react-hook-form";
 import UserApi from "../api/UserApi";
 import toast from "react-hot-toast";
-import { Link, useLocation } from "react-router-dom"
+import { useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { setUser } from "../Components/redux/features/authSlice";
 
 export function SetupProfilePage() {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  
+  const { id, username, channelName, profilePicture, coverPicture, subscribers, description } = useSelector(
+    (state) => state.auth
+  );
 
-  const location = useLocation()
-  // console.log("State -", location)
-  const { username, channelName, profilePicture, coverPicture } = location.state || {}
-  console.log("Cover picture-----", coverPicture)
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const { register, handleSubmit, setValue, watch } = useForm({
     defaultValues: {
-      channelName: "",
+      channelName: channelName || "",
       description: "",
       profileImage: null,
       coverImage: null,
     },
   });
 
-  const [coverImage, setCoverImage] = useState(coverPicture ?? null);
-  const [profileImage, setProfileImage] = useState(null);
+  const [coverImagePreview, setCoverImagePreview] = useState(coverPicture ? coverPicture : null);
+  const [profileImagePreview, setProfileImagePreview] = useState(profilePicture ? profilePicture : null);
+  
+  const [coverImageFile, setCoverImageFile] = useState(null);
+  const [profileImageFile, setProfileImageFile] = useState(null);
+  
   const [croppingImage, setCroppingImage] = useState(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
@@ -46,39 +56,84 @@ export function SetupProfilePage() {
   };
 
   const handleCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
-    console.log(croppedAreaPixels);
   }, []);
 
   const handleCropConfirm = () => {
     if (croppingImage.type === "profile") {
-      setProfileImage(croppingImage.file);
+      setProfileImageFile(croppingImage.file);
+      setProfileImagePreview(URL.createObjectURL(croppingImage.file));
       setValue("profileImage", croppingImage.file);
     } else {
-      setCoverImage(croppingImage.file);
+      setCoverImageFile(croppingImage.file);
+      setCoverImagePreview(URL.createObjectURL(croppingImage.file));
       setValue("coverImage", croppingImage.file);
     }
     setCroppingImage(null);
   };
 
   const onSubmit = async (data) => {
-    const formData = new FormData();
-
-    formData.append("channelName", data.channelName);
-    formData.append("description", data.description);
-
-    if (profileImage) formData.append("profilePicture", profileImage);
-    if (coverImage) formData.append("coverPicture", coverImage);
-
-    UserApi.updateProfile(formData)
-      .then((response) => {
-        console.log(response);
-        toast.success("Profile updated successfully");
-      })
-      .catch((error) => {
-        console.error("Error updating profile:", error);
-      });
+    setIsSubmitting(true);
+    
+    try {
+      const formData = new FormData();
+      
+      formData.append("channelName", data.channelName);
+      
+      if (data.description) {
+        formData.append("description", data.description);
+      }
+      
+      if (profileImageFile) {
+        formData.append("profilePicture", profileImageFile);
+      }
+      
+      if (coverImageFile) {
+        formData.append("coverPicture", coverImageFile);
+      }
+    
+      
+      const response = await UserApi.updateProfile(formData);
+  
+      
+      
+      const updatedData = response?.data || response;
+      
+      dispatch(setUser({
+        id,
+        username,
+        profilePicture: updatedData?.profilePicture || profilePicture,
+        coverPicture: updatedData?.coverPicture || coverPicture,
+        channelName: updatedData?.channelName || channelName,
+        subscribers: updatedData?.subscribers?.length || subscribers || 0,
+        description: updatedData?.description || ""
+      }))
+      
+    
+      toast.success("Profile updated successfully");
+      navigate(`/profile/${id}`);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else if (error.message) {
+        toast.error(error.message);
+      } else {
+        toast.error("Failed to update profile");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
+  useEffect(() => {
+    setValue("channelName", channelName || "");
+    setValue("description", description || "");
+    setProfileImagePreview(profilePicture || null);
+    setCoverImagePreview(coverPicture || null);
+  }, [channelName, description, profilePicture, coverPicture, setValue]);
+  
+  
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
@@ -86,10 +141,9 @@ export function SetupProfilePage() {
     >
       {/* Cover Image Section */}
       <div className="relative">
-        {(coverImage) ? (
+        {coverImagePreview ? (
           <img
-            src={coverPicture ?? URL.createObjectURL(coverImage)}
-            // src={coverImage}
+            src={coverImagePreview}
             alt="Cover"
             className="w-full h-48 object-cover rounded-lg"
           />
@@ -104,8 +158,8 @@ export function SetupProfilePage() {
           <Upload size={16} className="inline-block mr-2" /> Upload Cover
           <input
             type="file"
+            accept="image/*"
             hidden
-            {...register("coverImage")}
             onChange={(e) => handleFileChange(e, "cover")}
           />
         </label>
@@ -114,7 +168,7 @@ export function SetupProfilePage() {
       {/* Profile Image */}
       <div className="relative flex justify-center">
         <Avatar
-          src={profileImage ? URL.createObjectURL(profileImage) : ""}
+          src={profileImagePreview}
           alt="Profile"
           sx={{ width: 96, height: 96, border: "4px solid white" }}
         />
@@ -124,8 +178,8 @@ export function SetupProfilePage() {
           </IconButton>
           <input
             type="file"
+            accept="image/*"
             hidden
-            {...register("profileImage")}
             onChange={(e) => handleFileChange(e, "profile")}
           />
         </label>
@@ -138,7 +192,15 @@ export function SetupProfilePage() {
             fullWidth
             label="Channel Name"
             variant="outlined"
-            {...register("channelName")}
+            required
+            value={watch("channelName")}
+            onChange={(e) => setValue("channelName", e.target.value)}
+            error={watch("channelName").length < 3 && watch("channelName").length > 0}
+            helperText={
+              watch("channelName").length < 3 && watch("channelName").length > 0
+                ? "Channel name must be at least 3 characters long"
+                : ""
+            }
           />
           <TextField
             fullWidth
@@ -146,20 +208,26 @@ export function SetupProfilePage() {
             multiline
             rows={3}
             variant="outlined"
+            inputProps={{ maxLength: 500 }}
             {...register("description")}
+            helperText={`${watch("description")?.length || 0}/500 characters`}
           />
           <div className="flex justify-end space-x-4">
-            <Button variant="outlined" color="secondary">
-              Discard
+            <Button 
+              variant="outlined" 
+              color="secondary"
+              onClick={() => navigate(-1)}
+            >
+              Cancel
             </Button>
-            {/* <Link
-              to="/profile"
-              className="no-underline"
-            > */}
-              <Button type="submit" variant="contained" color="primary">
-                Save Changes
-              </Button>
-            {/* </Link> */}
+            <Button 
+              type="submit" 
+              variant="contained" 
+              color="primary"
+              disabled={watch("channelName").length < 3 || isSubmitting}
+            >
+              {isSubmitting ? "Saving..." : "Save Changes"}
+            </Button>
           </div>
         </CardContent>
       </Card>

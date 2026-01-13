@@ -36,7 +36,13 @@ const fileFilter = (req: Request, file: Express.Multer.File, callback: FileFilte
   }
 };
 
-const upload = multer({ storage, fileFilter });
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: {
+    fileSize: 200 * 1024 * 1024, 
+  },
+});
 
 export const uploadProfileCover: RequestHandler = upload.fields([
   { name: 'profilePicture', maxCount: 1 },

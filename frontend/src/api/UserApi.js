@@ -25,10 +25,14 @@ const subscribe = async (channelId) => {
 }
 // router.post("/update-profile", authenticate, uploadProfileCover, validate(setupProfileSchema), asyncHandler(setupProfile))
 const updateProfile = async (data) => {
-    const response = await apiClient.post("user/update-profile",data)
-    return response.data.data
-}
-
+    const response = await apiClient.post("user/update-profile", data, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data.data;
+  };
+  
 const getUser = async (userId) => {
     const response = await apiClient.get(`user/profile/${userId}`)
     return response.data.data
